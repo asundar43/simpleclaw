@@ -1,4 +1,26 @@
-# Repository Guidelines
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Architecture Overview
+
+OpenClaw is a **personal AI assistant gateway** — a local WebSocket server that connects to messaging channels (WhatsApp, Telegram, Slack, Discord, Signal, iMessage, Google Chat, Microsoft Teams, Matrix, etc.) and routes inbound messages to isolated AI agents backed by LLM providers (Anthropic, OpenAI, Google, etc.).
+
+**Key architectural layers:**
+
+- **Gateway** (`src/gateway/`): WebSocket server — the central control plane. Manages sessions, channels, routing, cron, plugins, and tool execution. Entry: `server.impl.ts` boots all subsystems; `server-chat.ts` handles agent events; `server-ws-runtime.ts` manages WS connections. Uses a binary framing protocol (`src/gateway/protocol/`).
+- **Channel abstraction** (`src/channels/`): Each messaging platform implements `ChannelPlugin` (defined in `src/channels/types.plugin.ts`) with adapters for outbound messaging, auth, config, security/allowlists, groups, threading, and status. Built-in channels live in `src/{discord,slack,telegram,signal,imessage,web,line}/`; extension channels live in `extensions/`.
+- **Routing** (`src/routing/`): `resolve-route.ts` maps inbound messages to agents using a precedence chain: peer binding → parent peer → guild+roles → guild → team → account → channel → default. Session keys encode agent+channel+account+peer identity.
+- **Agents** (`src/agents/`): Multi-agent support — each agent has its own workspace dir, model config, session store, and skills. Default agent is `"main"`. Agents run the Pi agent runtime in RPC mode with tool streaming.
+- **Plugin system** (`src/plugin-sdk/`, `src/plugins/`): Two kinds — **channel plugins** (messaging platforms) and **provider/tool plugins** (LLM providers, memory, tasks). Extensions declare entry points via `package.json` → `"openclaw.extensions"`. Plugin API: `src/plugin-sdk/index.ts`.
+- **Config** (`src/config/`): YAML/JSON5 config at `~/.openclaw/` with env var substitution, file includes, and plugin-contributed schemas. Validated via Zod.
+- **CLI** (`src/cli/`): Commander.js-based. Entry: `src/entry.ts` → `src/index.ts` → `src/cli/program/build-program.ts`. DI via `createDefaultDeps()`.
+
+**Inbound message flow:** Channel receives message → gateway listener → `resolve-route.ts` picks agent → agent runs with tools → response sent back via channel outbound adapter → optional reply-back delivery.
+
+**Native apps:** macOS menu bar (`apps/macos/`, SwiftUI), iOS (`apps/ios/`), Android (`apps/android/`, Kotlin). Shared code in `apps/shared/`. The macOS app hosts the gateway process; mobile apps connect as nodes.
+
+## Repository Guidelines
 
 - Repo: https://github.com/openclaw/openclaw
 - GitHub issues/comments/PR comments: use literal multiline strings or `-F - <<'EOF'` (or $'...') for real newlines; never embed "\\n".
@@ -68,6 +90,10 @@
 - Format check: `pnpm format` (oxfmt --check)
 - Format fix: `pnpm format:fix` (oxfmt --write)
 - Tests: `pnpm test` (vitest); coverage: `pnpm test:coverage`
+- Run a single test file: `pnpm vitest run src/path/to/file.test.ts`
+- Run tests matching a name: `pnpm vitest run -t "test name pattern"`
+- Watch mode: `pnpm test:watch`
+- E2E tests: `pnpm test:e2e` (separate vitest config: `vitest.e2e.config.ts`)
 
 ## Coding Style & Naming Conventions
 
