@@ -148,6 +148,10 @@ export async function packNpmSpecToArchive(params: {
   spec: string;
   timeoutMs: number;
   cwd: string;
+  /** Private npm registry URL (e.g. Google Artifact Registry endpoint). */
+  registryUrl?: string;
+  /** Extra environment variables for npm auth (e.g. GAR token). */
+  registryEnv?: Record<string, string>;
 }): Promise<
   | {
       ok: true;
@@ -159,14 +163,16 @@ export async function packNpmSpecToArchive(params: {
       error: string;
     }
 > {
+  const registryArgs = params.registryUrl ? ["--registry", params.registryUrl] : [];
   const res = await runCommandWithTimeout(
-    ["npm", "pack", params.spec, "--ignore-scripts", "--json"],
+    ["npm", "pack", params.spec, "--ignore-scripts", "--json", ...registryArgs],
     {
       timeoutMs: Math.max(params.timeoutMs, 300_000),
       cwd: params.cwd,
       env: {
         COREPACK_ENABLE_DOWNLOAD_PROMPT: "0",
         NPM_CONFIG_IGNORE_SCRIPTS: "true",
+        ...params.registryEnv,
       },
     },
   );

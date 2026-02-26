@@ -241,4 +241,87 @@ describe("packNpmSpecToArchive", () => {
       error: "npm pack failed: network timeout",
     });
   });
+
+  it("passes --registry flag when registryUrl is provided", async () => {
+    const cwd = await createFixtureDir();
+    mockPackCommandResult({
+      stdout: JSON.stringify([{ id: "pkg@1.0.0", filename: "pkg-1.0.0.tgz" }]),
+    });
+
+    await packNpmSpecToArchive({
+      spec: "pkg@1.0.0",
+      timeoutMs: 1000,
+      cwd,
+      registryUrl: "https://us-central1-npm.pkg.dev/project/repo",
+    });
+
+    expect(runCommandWithTimeoutMock).toHaveBeenCalledWith(
+      [
+        "npm",
+        "pack",
+        "pkg@1.0.0",
+        "--ignore-scripts",
+        "--json",
+        "--registry",
+        "https://us-central1-npm.pkg.dev/project/repo",
+      ],
+      expect.any(Object),
+    );
+  });
+
+  it("does not pass --registry flag when registryUrl is omitted", async () => {
+    const cwd = await createFixtureDir();
+    mockPackCommandResult({
+      stdout: JSON.stringify([{ id: "pkg@1.0.0", filename: "pkg-1.0.0.tgz" }]),
+    });
+
+    await packNpmSpecToArchive({
+      spec: "pkg@1.0.0",
+      timeoutMs: 1000,
+      cwd,
+    });
+
+    const args = runCommandWithTimeoutMock.mock.calls[0][0] as string[];
+    expect(args).not.toContain("--registry");
+  });
+
+  it("merges registryEnv into subprocess environment variables", async () => {
+    const cwd = await createFixtureDir();
+    mockPackCommandResult({
+      stdout: JSON.stringify([{ id: "pkg@1.0.0", filename: "pkg-1.0.0.tgz" }]),
+    });
+
+    await packNpmSpecToArchive({
+      spec: "pkg@1.0.0",
+      timeoutMs: 1000,
+      cwd,
+      registryEnv: { NPM_AUTH_TOKEN: "ya29.test-token" },
+    });
+
+    const opts = runCommandWithTimeoutMock.mock.calls[0][1] as { env: Record<string, string> };
+    expect(opts.env.NPM_AUTH_TOKEN).toBe("ya29.test-token");
+    expect(opts.env.COREPACK_ENABLE_DOWNLOAD_PROMPT).toBe("0");
+  });
+
+  it("passes both registryUrl and registryEnv together", async () => {
+    const cwd = await createFixtureDir();
+    mockPackCommandResult({
+      stdout: JSON.stringify([{ id: "pkg@1.0.0", filename: "pkg-1.0.0.tgz" }]),
+    });
+
+    await packNpmSpecToArchive({
+      spec: "pkg@1.0.0",
+      timeoutMs: 1000,
+      cwd,
+      registryUrl: "https://us-central1-npm.pkg.dev/project/repo",
+      registryEnv: { NPM_CONFIG__AUTH: "base64token" },
+    });
+
+    const args = runCommandWithTimeoutMock.mock.calls[0][0] as string[];
+    expect(args).toContain("--registry");
+    expect(args).toContain("https://us-central1-npm.pkg.dev/project/repo");
+
+    const opts = runCommandWithTimeoutMock.mock.calls[0][1] as { env: Record<string, string> };
+    expect(opts.env.NPM_CONFIG__AUTH).toBe("base64token");
+  });
 });

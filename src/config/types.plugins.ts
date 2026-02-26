@@ -15,6 +15,19 @@ export type PluginsLoadConfig = {
 
 export type PluginInstallRecord = InstallRecordBase;
 
+export type PrivateRegistryConfig = {
+  /** Private npm registry URL (e.g. Google Artifact Registry endpoint). */
+  npmRegistry?: string;
+  /** Private Docker registry URL. */
+  dockerRegistry?: string;
+  /** Marketplace catalog URL (GCS or HTTPS endpoint to catalog.json). */
+  catalogUrl?: string;
+  /** Auth method for the private registry. */
+  authMethod?: "gcloud-adc" | "token" | "npmrc";
+  /** Static auth token (used when authMethod is "token"). */
+  authToken?: string;
+};
+
 export type PluginsConfig = {
   /** Enable or disable plugin loading. */
   enabled?: boolean;
@@ -26,5 +39,7 @@ export type PluginsConfig = {
   slots?: PluginSlotsConfig;
   entries?: Record<string, PluginEntryConfig>;
   installs?: Record<string, PluginInstallRecord>;
+  /** Private registry configuration for plugin distribution. */
+  registry?: PrivateRegistryConfig;
 };
 import type { InstallRecordBase } from "./types.installs.js";

@@ -10,6 +10,7 @@ import { enablePluginInConfig } from "../plugins/enable.js";
 import { installPluginFromNpmSpec, installPluginFromPath } from "../plugins/install.js";
 import { recordPluginInstall } from "../plugins/installs.js";
 import { clearPluginManifestRegistryCache } from "../plugins/manifest-registry.js";
+import { resolveRegistryAuth } from "../plugins/registry-auth.js";
 import type { PluginRecord } from "../plugins/registry.js";
 import { applyExclusiveSlotSelection } from "../plugins/slots.js";
 import { resolvePluginSourceRoots, formatPluginSourceForTable } from "../plugins/source-display.js";
@@ -609,9 +610,12 @@ export function registerPluginsCli(program: Command) {
         process.exit(1);
       }
 
+      const registryAuth = await resolveRegistryAuth(cfg.plugins?.registry);
       const result = await installPluginFromNpmSpec({
         spec: raw,
         logger: createPluginInstallLogger(),
+        registryUrl: registryAuth?.registryUrl,
+        registryEnv: registryAuth?.registryEnv,
       });
       if (!result.ok) {
         defaultRuntime.error(result.error);
@@ -662,10 +666,13 @@ export function registerPluginsCli(program: Command) {
         process.exit(1);
       }
 
+      const registryAuth = await resolveRegistryAuth(cfg.plugins?.registry);
       const result = await updateNpmInstalledPlugins({
         config: cfg,
         pluginIds: targets,
         dryRun: opts.dryRun,
+        registryUrl: registryAuth?.registryUrl,
+        registryEnv: registryAuth?.registryEnv,
         logger: {
           info: (msg) => defaultRuntime.log(msg),
           warn: (msg) => defaultRuntime.log(theme.warn(msg)),

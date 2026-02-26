@@ -234,6 +234,15 @@ const entries: SubCliEntry[] = [
     },
   },
   {
+    name: "marketplace",
+    description: "Browse and install plugins from the private marketplace catalog",
+    hasSubcommands: true,
+    register: async (program) => {
+      const mod = await import("../marketplace-cli.js");
+      mod.registerMarketplaceCli(program);
+    },
+  },
+  {
     name: "channels",
     description: "Manage connected chat channels (Telegram, Discord, etc.)",
     hasSubcommands: true,

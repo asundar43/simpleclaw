@@ -33,6 +33,10 @@ export async function installFromNpmSpecArchiveWithInstaller<
   warn?: (message: string) => void;
   installFromArchive: (params: TArchiveInstallParams) => Promise<TResult>;
   archiveInstallParams: Omit<TArchiveInstallParams, "archivePath">;
+  /** Private npm registry URL. */
+  registryUrl?: string;
+  /** Extra environment variables for npm auth. */
+  registryEnv?: Record<string, string>;
 }): Promise<NpmSpecArchiveInstallFlowResult<TResult>> {
   return await installFromNpmSpecArchive({
     tempDirPrefix: params.tempDirPrefix,
@@ -41,6 +45,8 @@ export async function installFromNpmSpecArchiveWithInstaller<
     expectedIntegrity: params.expectedIntegrity,
     onIntegrityDrift: params.onIntegrityDrift,
     warn: params.warn,
+    registryUrl: params.registryUrl,
+    registryEnv: params.registryEnv,
     installFromArchive: async ({ archivePath }) =>
       await params.installFromArchive({
         archivePath,
@@ -92,12 +98,18 @@ export async function installFromNpmSpecArchive<TResult extends { ok: boolean }>
   onIntegrityDrift?: (payload: NpmIntegrityDriftPayload) => boolean | Promise<boolean>;
   warn?: (message: string) => void;
   installFromArchive: (params: { archivePath: string }) => Promise<TResult>;
+  /** Private npm registry URL. */
+  registryUrl?: string;
+  /** Extra environment variables for npm auth. */
+  registryEnv?: Record<string, string>;
 }): Promise<NpmSpecArchiveInstallFlowResult<TResult>> {
   return await withTempDir(params.tempDirPrefix, async (tmpDir) => {
     const packedResult = await packNpmSpecToArchive({
       spec: params.spec,
       timeoutMs: params.timeoutMs,
       cwd: tmpDir,
+      registryUrl: params.registryUrl,
+      registryEnv: params.registryEnv,
     });
     if (!packedResult.ok) {
       return packedResult;

@@ -190,6 +190,10 @@ export async function updateNpmInstalledPlugins(params: {
   skipIds?: Set<string>;
   dryRun?: boolean;
   onIntegrityDrift?: (params: PluginUpdateIntegrityDriftParams) => boolean | Promise<boolean>;
+  /** Private npm registry URL. */
+  registryUrl?: string;
+  /** Extra environment variables for npm auth. */
+  registryEnv?: Record<string, string>;
 }): Promise<PluginUpdateSummary> {
   const logger = params.logger ?? {};
   const installs = params.config.plugins?.installs ?? {};
@@ -265,6 +269,8 @@ export async function updateNpmInstalledPlugins(params: {
             onIntegrityDrift: params.onIntegrityDrift,
           }),
           logger,
+          registryUrl: params.registryUrl,
+          registryEnv: params.registryEnv,
         });
       } catch (err) {
         outcomes.push({
@@ -319,6 +325,8 @@ export async function updateNpmInstalledPlugins(params: {
           onIntegrityDrift: params.onIntegrityDrift,
         }),
         logger,
+        registryUrl: params.registryUrl,
+        registryEnv: params.registryEnv,
       });
     } catch (err) {
       outcomes.push({
@@ -377,6 +385,10 @@ export async function syncPluginsForUpdateChannel(params: {
   channel: UpdateChannel;
   workspaceDir?: string;
   logger?: PluginUpdateLogger;
+  /** Private npm registry URL. */
+  registryUrl?: string;
+  /** Extra environment variables for npm auth. */
+  registryEnv?: Record<string, string>;
 }): Promise<PluginChannelSyncResult> {
   const summary: PluginChannelSyncSummary = {
     switchedToBundled: [],
@@ -452,6 +464,8 @@ export async function syncPluginsForUpdateChannel(params: {
           mode: "update",
           expectedPluginId: pluginId,
           logger: params.logger,
+          registryUrl: params.registryUrl,
+          registryEnv: params.registryEnv,
         });
       } catch (err) {
         summary.errors.push(`Failed to install ${pluginId}: ${String(err)}`);

@@ -407,6 +407,10 @@ export async function installPluginFromNpmSpec(params: {
   expectedPluginId?: string;
   expectedIntegrity?: string;
   onIntegrityDrift?: (params: PluginNpmIntegrityDriftParams) => boolean | Promise<boolean>;
+  /** Private npm registry URL. */
+  registryUrl?: string;
+  /** Extra environment variables for npm auth. */
+  registryEnv?: Record<string, string>;
 }): Promise<InstallPluginResult> {
   const { logger, timeoutMs, mode, dryRun } = resolveTimedInstallModeOptions(params, defaultLogger);
   const expectedPluginId = params.expectedPluginId;
@@ -426,6 +430,8 @@ export async function installPluginFromNpmSpec(params: {
     warn: (message) => {
       logger.warn?.(message);
     },
+    registryUrl: params.registryUrl,
+    registryEnv: params.registryEnv,
     installFromArchive: installPluginFromArchive,
     archiveInstallParams: {
       extensionsDir: params.extensionsDir,
