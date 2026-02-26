@@ -1,0 +1,44 @@
+name: Sync docs
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout simpleclaw
+        uses: actions/checkout@v4
+        with:
+          path: simpleclaw
+
+      - name: Checkout docs repo
+        uses: actions/checkout@v4
+        with:
+          repository: asundar43/docs
+          path: docs-repo
+          ssh-key: ${{ secrets.DOCS_DEPLOY_KEY }}
+
+      - name: Sync docs content
+        run: |
+          # Only touch the simpleclaw/ subdirectory
+          rm -rf docs-repo/simpleclaw
+          mkdir -p docs-repo/simpleclaw
+          # Copy docs content (excluding docs.json — managed in docs repo)
+          rsync -a --exclude='docs.json' simpleclaw/docs/ docs-repo/simpleclaw/
+
+      - name: Commit and push
+        run: |
+          cd docs-repo
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No docs changes to sync."
+            exit 0
+          fi
+          git commit -m "Sync simpleclaw docs from simpleclaw@${GITHUB_SHA::7}"
+          git push

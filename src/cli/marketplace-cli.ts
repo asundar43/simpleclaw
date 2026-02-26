@@ -1,16 +1,25 @@
+import fs from "node:fs/promises";
+import path from "node:path";
 import type { Command } from "commander";
 import { loadConfig, writeConfigFile } from "../config/config.js";
+import { resolveGarAuthToken } from "../infra/gcloud-auth.js";
 import { enablePluginInConfig } from "../plugins/enable.js";
 import { installPluginFromNpmSpec } from "../plugins/install.js";
 import { recordPluginInstall } from "../plugins/installs.js";
 import { clearPluginManifestRegistryCache } from "../plugins/manifest-registry.js";
 import {
+  type MarketplaceCatalog,
   type MarketplacePluginEntry,
   type MarketplaceSkillEntry,
   fetchCatalogWithAuth,
   searchCatalog,
 } from "../plugins/marketplace.js";
 import { resolveRegistryAuth } from "../plugins/registry-auth.js";
+import {
+  installSkillFromArchiveUrl,
+  recordSkillInstall,
+  removeSkillInstall,
+} from "../plugins/skill-install.js";
 import { applyExclusiveSlotSelection } from "../plugins/slots.js";
 import { buildPluginStatusReport } from "../plugins/status.js";
 import { updateNpmInstalledPlugins } from "../plugins/update.js";
@@ -18,6 +27,7 @@ import { runCommandWithTimeout } from "../process/exec.js";
 import { defaultRuntime } from "../runtime.js";
 import { renderTable } from "../terminal/table.js";
 import { theme } from "../terminal/theme.js";
+import { CONFIG_DIR } from "../utils.js";
 import { resolvePinnedNpmInstallRecordForCli } from "./npm-resolution.js";
 
 function formatPluginKind(kind: string): string {
@@ -125,17 +135,27 @@ export function registerMarketplaceCli(program: Command) {
 
   marketplace
     .command("install")
-    .description("Install a plugin from the marketplace catalog")
-    .argument("<id>", "Plugin ID from the catalog")
-    .option("--pin", "Record install as exact resolved version", false)
+    .description("Install a plugin or skill from the marketplace catalog")
+    .argument("<id>", "Plugin or skill ID from the catalog")
+    .option("--pin", "Record install as exact resolved version (plugins only)", false)
     .action(async (id: string, opts: { pin?: boolean }) => {
       const catalog = await loadCatalog();
-      const entry = catalog.plugins.find((p) => p.id === id || p.npmSpec === id);
-      if (!entry) {
-        defaultRuntime.error(`Plugin "${id}" not found in the catalog.`);
+      const skillEntry = catalog.skills.find((s) => s.name === id);
+      const pluginEntry = catalog.plugins.find((p) => p.id === id || p.npmSpec === id);
+
+      if (!skillEntry && !pluginEntry) {
+        defaultRuntime.error(`"${id}" not found in the catalog (checked both plugins and skills).`);
         process.exit(1);
       }
 
+      // Skill install flow
+      if (skillEntry && !pluginEntry) {
+        await installSkillFromCatalog(catalog, skillEntry);
+        return;
+      }
+
+      // If both match, prefer plugin (skills can always be installed separately)
+      const entry = pluginEntry!;
       const cfg = loadConfig();
       const registryAuth = await resolveRegistryAuth(cfg.plugins?.registry);
       // Use the catalog's registry if no per-config registry is set
@@ -200,12 +220,13 @@ export function registerMarketplaceCli(program: Command) {
 
   marketplace
     .command("sync")
-    .description("Update all installed plugins to the latest catalog versions")
+    .description("Update all installed plugins and skills to the latest catalog versions")
     .option("--dry-run", "Show what would change without writing", false)
     .action(async (opts: { dryRun?: boolean }) => {
       const cfg = loadConfig();
       const registryAuth = await resolveRegistryAuth(cfg.plugins?.registry);
 
+      // Plugin sync
       const result = await updateNpmInstalledPlugins({
         config: cfg,
         dryRun: opts.dryRun,
@@ -229,9 +250,78 @@ export function registerMarketplaceCli(program: Command) {
         defaultRuntime.log(outcome.message);
       }
 
-      if (!opts.dryRun && result.changed) {
-        await writeConfigFile(result.config);
-        defaultRuntime.log("Restart the gateway to load plugins.");
+      let next = result.config;
+      let changed = result.changed;
+
+      // Skill sync
+      const skillInstalls = cfg.skills?.installs ?? {};
+      const marketplaceSkills = Object.entries(skillInstalls).filter(
+        ([, record]) => record.source === "marketplace",
+      );
+
+      if (marketplaceSkills.length > 0) {
+        const catalog = await loadCatalog();
+        const authToken = await resolveMarketplaceAuthToken(cfg);
+
+        for (const [skillName, record] of marketplaceSkills) {
+          const catalogEntry = catalog.skills.find((s) => s.name === skillName);
+          if (!catalogEntry) {
+            defaultRuntime.log(theme.warn(`Skill "${skillName}" no longer in catalog. Skipping.`));
+            continue;
+          }
+
+          if (record.version === catalogEntry.version) {
+            defaultRuntime.log(theme.muted(`Skill "${skillName}" up to date (${record.version}).`));
+            continue;
+          }
+
+          if (opts.dryRun) {
+            defaultRuntime.log(
+              `Would update skill "${skillName}": ${record.version ?? "unknown"} → ${catalogEntry.version}`,
+            );
+            continue;
+          }
+
+          if (!catalogEntry.archiveUrl) {
+            defaultRuntime.log(theme.warn(`Skill "${skillName}" has no archive URL. Skipping.`));
+            continue;
+          }
+
+          const installResult = await installSkillFromArchiveUrl({
+            name: skillName,
+            archiveUrl: catalogEntry.archiveUrl,
+            authToken: authToken ?? undefined,
+            logger: {
+              info: (msg) => defaultRuntime.log(msg),
+              warn: (msg) => defaultRuntime.log(theme.warn(msg)),
+            },
+          });
+
+          if (!installResult.ok) {
+            defaultRuntime.log(
+              theme.error(`Failed to update skill "${skillName}": ${installResult.error}`),
+            );
+            continue;
+          }
+
+          next = recordSkillInstall(next, {
+            skillName,
+            source: "marketplace",
+            version: catalogEntry.version,
+            archiveUrl: catalogEntry.archiveUrl,
+          });
+          changed = true;
+          defaultRuntime.log(
+            `Updated skill "${skillName}": ${record.version ?? "unknown"} → ${catalogEntry.version}`,
+          );
+        }
+      }
+
+      if (!opts.dryRun && changed) {
+        await writeConfigFile(next);
+        if (result.changed) {
+          defaultRuntime.log("Restart the gateway to load plugins.");
+        }
       }
     });
 
@@ -268,6 +358,91 @@ export function registerMarketplaceCli(program: Command) {
         defaultRuntime.log(result.stdout.trim());
       }
     });
+
+  // ── uninstall ──────────────────────────────────────────────
+
+  marketplace
+    .command("uninstall")
+    .description("Uninstall a marketplace skill")
+    .argument("<name>", "Skill name")
+    .action(async (name: string) => {
+      const cfg = loadConfig();
+      const record = cfg.skills?.installs?.[name];
+
+      if (!record) {
+        defaultRuntime.error(
+          `Skill "${name}" is not installed via the marketplace. Check with: simpleclaw skills list`,
+        );
+        process.exit(1);
+      }
+
+      const managedSkillsDir = path.join(CONFIG_DIR, "skills");
+      const skillDir = path.join(managedSkillsDir, name);
+
+      await fs.rm(skillDir, { recursive: true, force: true });
+      const next = removeSkillInstall(cfg, name);
+      await writeConfigFile(next);
+
+      defaultRuntime.log(`Uninstalled skill: ${name}`);
+    });
+}
+
+// ── Skill install helper ─────────────────────────────────────
+
+async function resolveMarketplaceAuthToken(
+  cfg: ReturnType<typeof loadConfig>,
+): Promise<string | null> {
+  const registry = cfg.plugins?.registry;
+  if (registry?.authMethod === "gcloud-adc") {
+    return await resolveGarAuthToken();
+  }
+  if (registry?.authMethod === "token" && registry.authToken) {
+    return registry.authToken;
+  }
+  return null;
+}
+
+async function installSkillFromCatalog(
+  catalog: MarketplaceCatalog,
+  skillEntry: MarketplaceSkillEntry,
+) {
+  if (!skillEntry.archiveUrl) {
+    defaultRuntime.error(
+      `Skill "${skillEntry.name}" has no archive URL. It may only be available as part of a plugin.`,
+    );
+    process.exit(1);
+  }
+
+  const cfg = loadConfig();
+  const authToken = await resolveMarketplaceAuthToken(cfg);
+
+  defaultRuntime.log(`Installing skill ${theme.command(skillEntry.name)} (${skillEntry.version})…`);
+
+  const result = await installSkillFromArchiveUrl({
+    name: skillEntry.name,
+    archiveUrl: skillEntry.archiveUrl,
+    authToken: authToken ?? undefined,
+    logger: {
+      info: (msg) => defaultRuntime.log(msg),
+      warn: (msg) => defaultRuntime.log(theme.warn(msg)),
+    },
+  });
+
+  if (!result.ok) {
+    defaultRuntime.error(result.error);
+    process.exit(1);
+  }
+
+  const next = recordSkillInstall(cfg, {
+    skillName: skillEntry.name,
+    source: "marketplace",
+    version: skillEntry.version,
+    archiveUrl: skillEntry.archiveUrl,
+  });
+
+  await writeConfigFile(next);
+  defaultRuntime.log(`Installed skill: ${skillEntry.name} → ${result.targetDir}`);
+  defaultRuntime.log("Skill is available immediately (no gateway restart needed).");
 }
 
 // ── Display helpers ──────────────────────────────────────────

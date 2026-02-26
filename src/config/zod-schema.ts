@@ -698,6 +698,19 @@ export const SimpleClawSchema = z
               .strict(),
           )
           .optional(),
+        installs: z
+          .record(
+            z.string(),
+            z
+              .object({
+                source: z.union([z.literal("marketplace"), z.literal("archive")]),
+                version: z.string().optional(),
+                archiveUrl: z.string().optional(),
+                installedAt: z.string().optional(),
+              })
+              .strict(),
+          )
+          .optional(),
       })
       .strict()
       .optional(),

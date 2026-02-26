@@ -35,6 +35,13 @@ export type SkillsLimitsConfig = {
   maxSkillFileBytes?: number;
 };
 
+export type SkillInstallRecord = {
+  source: "marketplace" | "archive";
+  version?: string;
+  archiveUrl?: string;
+  installedAt?: string;
+};
+
 export type SkillsConfig = {
   /** Optional bundled-skill allowlist (only affects bundled skills). */
   allowBundled?: string[];
@@ -42,4 +49,6 @@ export type SkillsConfig = {
   install?: SkillsInstallConfig;
   limits?: SkillsLimitsConfig;
   entries?: Record<string, SkillConfig>;
+  /** Installed marketplace/archive skill records. */
+  installs?: Record<string, SkillInstallRecord>;
 };
