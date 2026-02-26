@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/config.js";
+import type { SimpleClawConfig } from "../config/config.js";
 import type { SessionEntry } from "../config/sessions.js";
 import {
   ensureAuthProfileStore,
@@ -21,7 +21,7 @@ function formatApiKeySnippet(apiKey: string): string {
 
 export function resolveModelAuthLabel(params: {
   provider?: string;
-  cfg?: OpenClawConfig;
+  cfg?: SimpleClawConfig;
   sessionEntry?: SessionEntry;
   agentDir?: string;
 }): string | undefined {

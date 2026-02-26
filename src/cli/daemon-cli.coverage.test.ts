@@ -97,15 +97,15 @@ describe("daemon-cli coverage", () => {
 
   beforeEach(() => {
     envSnapshot = captureEnv([
-      "OPENCLAW_STATE_DIR",
-      "OPENCLAW_CONFIG_PATH",
-      "OPENCLAW_GATEWAY_PORT",
-      "OPENCLAW_PROFILE",
+      "SIMPLECLAW_STATE_DIR",
+      "SIMPLECLAW_CONFIG_PATH",
+      "SIMPLECLAW_GATEWAY_PORT",
+      "SIMPLECLAW_PROFILE",
     ]);
-    process.env.OPENCLAW_STATE_DIR = "/tmp/openclaw-cli-state";
-    process.env.OPENCLAW_CONFIG_PATH = "/tmp/openclaw-cli-state/openclaw.json";
-    delete process.env.OPENCLAW_GATEWAY_PORT;
-    delete process.env.OPENCLAW_PROFILE;
+    process.env.SIMPLECLAW_STATE_DIR = "/tmp/simpleclaw-cli-state";
+    process.env.SIMPLECLAW_CONFIG_PATH = "/tmp/simpleclaw-cli-state/simpleclaw.json";
+    delete process.env.SIMPLECLAW_GATEWAY_PORT;
+    delete process.env.SIMPLECLAW_PROFILE;
     serviceReadCommand.mockResolvedValue(null);
   });
 
@@ -133,12 +133,12 @@ describe("daemon-cli coverage", () => {
     serviceReadCommand.mockResolvedValueOnce({
       programArguments: ["/bin/node", "cli", "gateway", "--port", "19001"],
       environment: {
-        OPENCLAW_PROFILE: "dev",
-        OPENCLAW_STATE_DIR: "/tmp/openclaw-daemon-state",
-        OPENCLAW_CONFIG_PATH: "/tmp/openclaw-daemon-state/openclaw.json",
-        OPENCLAW_GATEWAY_PORT: "19001",
+        SIMPLECLAW_PROFILE: "dev",
+        SIMPLECLAW_STATE_DIR: "/tmp/simpleclaw-daemon-state",
+        SIMPLECLAW_CONFIG_PATH: "/tmp/simpleclaw-daemon-state/simpleclaw.json",
+        SIMPLECLAW_GATEWAY_PORT: "19001",
       },
-      sourcePath: "/tmp/ai.openclaw.gateway.plist",
+      sourcePath: "/tmp/ai.simpleclaw.gateway.plist",
     });
 
     await runDaemonCommand(["daemon", "status", "--json"]);

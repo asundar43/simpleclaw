@@ -104,7 +104,7 @@ export function readSessionMessages(
           role: "system",
           content: [{ type: "text", text: "Compaction" }],
           timestamp,
-          __openclaw: {
+          __simpleclaw: {
             kind: "compaction",
             id: typeof parsed.id === "string" ? parsed.id : undefined,
           },

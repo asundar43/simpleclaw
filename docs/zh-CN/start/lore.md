@@ -123,7 +123,7 @@ Moltbot 说起来总是不太顺口。于是，在格林威治时间凌晨 4 点
 
 仅用 3 小时：
 
-- GitHub 更名：`github.com/openclaw/openclaw` ✅
+- GitHub 更名：`github.com/simpleclaw/simpleclaw` ✅
 - X 账号 `@openclaw` 获得金色认证标记 💰
 - npm 包以新名称发布
 - 文档迁移到 `docs.openclaw.ai`

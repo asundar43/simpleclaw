@@ -1,5 +1,5 @@
 import { lookup } from "node:dns/promises";
-import { isPrivateIpAddress } from "openclaw/plugin-sdk";
+import { isPrivateIpAddress } from "simpleclaw/plugin-sdk";
 import type { MSTeamsAttachmentLike } from "./types.js";
 
 type InlineImageCandidate =

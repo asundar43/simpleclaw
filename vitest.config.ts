@@ -11,8 +11,17 @@ const ciWorkers = isWindows ? 2 : 3;
 
 export default defineConfig({
   resolve: {
-    // Keep this ordered: the base `openclaw/plugin-sdk` alias is a prefix match.
+    // Keep this ordered: the base `simpleclaw/plugin-sdk` alias is a prefix match.
+    // Map both new (simpleclaw) and legacy (openclaw) import specifiers.
     alias: [
+      {
+        find: "simpleclaw/plugin-sdk/account-id",
+        replacement: path.join(repoRoot, "src", "plugin-sdk", "account-id.ts"),
+      },
+      {
+        find: "simpleclaw/plugin-sdk",
+        replacement: path.join(repoRoot, "src", "plugin-sdk", "index.ts"),
+      },
       {
         find: "openclaw/plugin-sdk/account-id",
         replacement: path.join(repoRoot, "src", "plugin-sdk", "account-id.ts"),

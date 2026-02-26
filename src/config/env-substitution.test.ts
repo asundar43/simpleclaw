@@ -318,8 +318,8 @@ describe("resolveConfigEnvVars", () => {
         },
         {
           name: "gateway auth token",
-          config: { gateway: { auth: { token: "${OPENCLAW_GATEWAY_TOKEN}" } } },
-          env: { OPENCLAW_GATEWAY_TOKEN: "secret-token" },
+          config: { gateway: { auth: { token: "${SIMPLECLAW_GATEWAY_TOKEN}" } } },
+          env: { SIMPLECLAW_GATEWAY_TOKEN: "secret-token" },
           expected: { gateway: { auth: { token: "secret-token" } } },
         },
         {

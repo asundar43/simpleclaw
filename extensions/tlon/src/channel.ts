@@ -3,13 +3,13 @@ import type {
   ChannelOutboundAdapter,
   ChannelPlugin,
   ChannelSetupInput,
-  OpenClawConfig,
-} from "openclaw/plugin-sdk";
+  SimpleClawConfig,
+} from "simpleclaw/plugin-sdk";
 import {
   applyAccountNameToChannelSection,
   DEFAULT_ACCOUNT_ID,
   normalizeAccountId,
-} from "openclaw/plugin-sdk";
+} from "simpleclaw/plugin-sdk";
 import { buildTlonAccountFields } from "./account-fields.js";
 import { tlonChannelConfigSchema } from "./config-schema.js";
 import { monitorTlonProvider } from "./monitor/index.js";
@@ -34,10 +34,10 @@ type TlonSetupInput = ChannelSetupInput & {
 };
 
 function applyTlonSetupConfig(params: {
-  cfg: OpenClawConfig;
+  cfg: SimpleClawConfig;
   accountId: string;
   input: TlonSetupInput;
-}): OpenClawConfig {
+}): SimpleClawConfig {
   const { cfg, accountId, input } = params;
   const useDefault = accountId === DEFAULT_ACCOUNT_ID;
   const namedConfig = applyAccountNameToChannelSection({
@@ -193,7 +193,7 @@ export const tlonPlugin: ChannelPlugin = {
               enabled,
             },
           },
-        } as OpenClawConfig;
+        } as SimpleClawConfig;
       }
       return {
         ...cfg,
@@ -210,7 +210,7 @@ export const tlonPlugin: ChannelPlugin = {
             },
           },
         },
-      } as OpenClawConfig;
+      } as SimpleClawConfig;
     },
     deleteAccount: ({ cfg, accountId }) => {
       const useDefault = !accountId || accountId === "default";
@@ -226,7 +226,7 @@ export const tlonPlugin: ChannelPlugin = {
             ...cfg.channels,
             tlon: rest,
           },
-        } as OpenClawConfig;
+        } as SimpleClawConfig;
       }
       // oxlint-disable-next-line no-unused-vars
       const { [accountId]: removed, ...remainingAccounts } = (cfg.channels?.tlon?.accounts ??
@@ -240,7 +240,7 @@ export const tlonPlugin: ChannelPlugin = {
             accounts: remainingAccounts,
           },
         },
-      } as OpenClawConfig;
+      } as SimpleClawConfig;
     },
     isConfigured: (account) => account.configured,
     describeAccount: (account) => ({

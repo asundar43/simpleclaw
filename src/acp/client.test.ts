@@ -98,7 +98,7 @@ describe("resolvePermissionRequest", () => {
           rawInput: { path: "docs/security.md" },
         },
       }),
-      { prompt, log: () => {}, cwd: "/tmp/openclaw-acp-cwd" },
+      { prompt, log: () => {}, cwd: "/tmp/simpleclaw-acp-cwd" },
     );
     expect(prompt).not.toHaveBeenCalled();
     expect(res).toEqual({ outcome: { outcome: "selected", optionId: "allow" } });
@@ -112,10 +112,10 @@ describe("resolvePermissionRequest", () => {
           toolCallId: "tool-read-inside-cwd-file-url",
           title: "read: ignored-by-raw-input",
           status: "pending",
-          rawInput: { path: "file:///tmp/openclaw-acp-cwd/docs/security.md" },
+          rawInput: { path: "file:///tmp/simpleclaw-acp-cwd/docs/security.md" },
         },
       }),
-      { prompt, log: () => {}, cwd: "/tmp/openclaw-acp-cwd" },
+      { prompt, log: () => {}, cwd: "/tmp/simpleclaw-acp-cwd" },
     );
     expect(prompt).not.toHaveBeenCalled();
     expect(res).toEqual({ outcome: { outcome: "selected", optionId: "allow" } });
@@ -132,7 +132,7 @@ describe("resolvePermissionRequest", () => {
           rawInput: { path: "../.ssh/id_rsa" },
         },
       }),
-      { prompt, log: () => {}, cwd: "/tmp/openclaw-acp-cwd/workspace" },
+      { prompt, log: () => {}, cwd: "/tmp/simpleclaw-acp-cwd/workspace" },
     );
     expect(prompt).toHaveBeenCalledTimes(1);
     expect(prompt).toHaveBeenCalledWith("read", "read: ignored-by-raw-input");

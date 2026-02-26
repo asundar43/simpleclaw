@@ -1,9 +1,9 @@
 {
-  "name": "@openclaw/irc",
+  "name": "@simpleclaw/irc",
   "version": "2026.2.25",
-  "description": "OpenClaw IRC channel plugin",
+  "description": "SimpleClaw IRC channel plugin",
   "type": "module",
-  "openclaw": {
+  "simpleclaw": {
     "extensions": [
       "./index.ts"
     ]

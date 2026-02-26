@@ -1,6 +1,6 @@
-import type { OpenClawConfig } from "./config.js";
+import type { SimpleClawConfig } from "./config.js";
 
-export function ensurePluginAllowlisted(cfg: OpenClawConfig, pluginId: string): OpenClawConfig {
+export function ensurePluginAllowlisted(cfg: SimpleClawConfig, pluginId: string): SimpleClawConfig {
   const allow = cfg.plugins?.allow;
   if (!Array.isArray(allow) || allow.includes(pluginId)) {
     return cfg;

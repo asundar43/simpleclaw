@@ -2,10 +2,10 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { SimpleClawConfig } from "../../config/config.js";
 import type { ModelDefinitionConfig } from "../../config/types.models.js";
 import { withFetchPreconnect } from "../../test-utils/fetch-mock.js";
-import { createOpenClawCodingTools } from "../pi-tools.js";
+import { createSimpleClawCodingTools } from "../pi-tools.js";
 import { createHostSandboxFsBridge } from "../test-helpers/host-sandbox-fs-bridge.js";
 import { createUnsafeMountedSandbox } from "../test-helpers/unsafe-mounted-sandbox.js";
 import { __testing, createImageTool, resolveImageModelConfigForTool } from "./image-tool.js";
@@ -20,7 +20,7 @@ async function writeAuthProfiles(agentDir: string, profiles: unknown) {
 }
 
 async function withTempAgentDir<T>(run: (agentDir: string) => Promise<T>): Promise<T> {
-  const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-image-"));
+  const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "simpleclaw-image-"));
   try {
     return await run(agentDir);
   } finally {
@@ -35,7 +35,9 @@ const ONE_PIXEL_GIF_B64 = "R0lGODlhAQABAIABAP///wAAACwAAAAAAQABAAACAkQBADs=";
 async function withTempWorkspacePng(
   cb: (args: { workspaceDir: string; imagePath: string }) => Promise<void>,
 ) {
-  const workspaceParent = await fs.mkdtemp(path.join(process.cwd(), ".openclaw-workspace-image-"));
+  const workspaceParent = await fs.mkdtemp(
+    path.join(process.cwd(), ".simpleclaw-workspace-image-"),
+  );
   try {
     const workspaceDir = path.join(workspaceParent, "workspace");
     await fs.mkdir(workspaceDir, { recursive: true });
@@ -108,7 +110,7 @@ function stubOpenAiCompletionsOkFetch(text = "ok") {
   return fetch;
 }
 
-function createMinimaxImageConfig(): OpenClawConfig {
+function createMinimaxImageConfig(): SimpleClawConfig {
   return {
     agents: {
       defaults: {
@@ -197,7 +199,7 @@ describe("image tool implicit imageModel config", () => {
 
   it("stays disabled without auth when no pairing is possible", async () => {
     await withTempAgentDir(async (agentDir) => {
-      const cfg: OpenClawConfig = {
+      const cfg: SimpleClawConfig = {
         agents: { defaults: { model: { primary: "openai/gpt-5.2" } } },
       };
       expect(resolveImageModelConfigForTool({ cfg, agentDir })).toBeNull();
@@ -210,7 +212,7 @@ describe("image tool implicit imageModel config", () => {
       vi.stubEnv("MINIMAX_API_KEY", "minimax-test");
       vi.stubEnv("OPENAI_API_KEY", "openai-test");
       vi.stubEnv("ANTHROPIC_API_KEY", "anthropic-test");
-      const cfg: OpenClawConfig = {
+      const cfg: SimpleClawConfig = {
         agents: { defaults: { model: { primary: "minimax/MiniMax-M2.1" } } },
       };
       expect(resolveImageModelConfigForTool({ cfg, agentDir })).toEqual({
@@ -226,7 +228,7 @@ describe("image tool implicit imageModel config", () => {
       vi.stubEnv("ZAI_API_KEY", "zai-test");
       vi.stubEnv("OPENAI_API_KEY", "openai-test");
       vi.stubEnv("ANTHROPIC_API_KEY", "anthropic-test");
-      const cfg: OpenClawConfig = {
+      const cfg: SimpleClawConfig = {
         agents: { defaults: { model: { primary: "zai/glm-4.7" } } },
       };
       expect(resolveImageModelConfigForTool({ cfg, agentDir })).toEqual({
@@ -245,7 +247,7 @@ describe("image tool implicit imageModel config", () => {
           "acme:default": { type: "api_key", provider: "acme", key: "sk-test" },
         },
       });
-      const cfg: OpenClawConfig = {
+      const cfg: SimpleClawConfig = {
         agents: { defaults: { model: { primary: "acme/text-1" } } },
         models: {
           providers: {
@@ -268,7 +270,7 @@ describe("image tool implicit imageModel config", () => {
 
   it("prefers explicit agents.defaults.imageModel", async () => {
     await withTempAgentDir(async (agentDir) => {
-      const cfg: OpenClawConfig = {
+      const cfg: SimpleClawConfig = {
         agents: {
           defaults: {
             model: { primary: "minimax/MiniMax-M2.1" },
@@ -288,7 +290,7 @@ describe("image tool implicit imageModel config", () => {
     // adjusted via modelHasVision to discourage redundant usage.
     vi.stubEnv("OPENAI_API_KEY", "test-key");
     await withTempAgentDir(async (agentDir) => {
-      const cfg: OpenClawConfig = {
+      const cfg: SimpleClawConfig = {
         agents: {
           defaults: {
             model: { primary: "acme/vision-1" },
@@ -320,7 +322,7 @@ describe("image tool implicit imageModel config", () => {
     await withTempAgentDir(async (agentDir) => {
       vi.stubEnv("MOONSHOT_API_KEY", "moonshot-test");
       const fetch = stubOpenAiCompletionsOkFetch("ok moonshot");
-      const cfg: OpenClawConfig = {
+      const cfg: SimpleClawConfig = {
         agents: {
           defaults: {
             model: { primary: "moonshot/kimi-k2.5" },
@@ -382,7 +384,7 @@ describe("image tool implicit imageModel config", () => {
   });
 
   it("exposes an Anthropic-safe image schema without union keywords", async () => {
-    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-image-"));
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "simpleclaw-image-"));
     try {
       const cfg = createMinimaxImageConfig();
       const tool = requireImageTool(createImageTool({ config: cfg, agentDir }));
@@ -408,7 +410,7 @@ describe("image tool implicit imageModel config", () => {
   });
 
   it("keeps an Anthropic-safe image schema snapshot", async () => {
-    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-image-"));
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "simpleclaw-image-"));
     try {
       const cfg = createMinimaxImageConfig();
       const tool = requireImageTool(createImageTool({ config: cfg, agentDir }));
@@ -436,7 +438,7 @@ describe("image tool implicit imageModel config", () => {
   it("allows workspace images outside default local media roots", async () => {
     await withTempWorkspacePng(async ({ workspaceDir, imagePath }) => {
       const fetch = stubMinimaxOkFetch();
-      const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-image-"));
+      const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "simpleclaw-image-"));
       try {
         const cfg = createMinimaxImageConfig();
 
@@ -461,14 +463,14 @@ describe("image tool implicit imageModel config", () => {
     });
   });
 
-  it("allows workspace images via createOpenClawCodingTools default workspace root", async () => {
+  it("allows workspace images via createSimpleClawCodingTools default workspace root", async () => {
     await withTempWorkspacePng(async ({ imagePath }) => {
       const fetch = stubMinimaxOkFetch();
-      const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-image-"));
+      const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "simpleclaw-image-"));
       try {
         const cfg = createMinimaxImageConfig();
 
-        const tools = createOpenClawCodingTools({ config: cfg, agentDir });
+        const tools = createSimpleClawCodingTools({ config: cfg, agentDir });
         const tool = requireImageTool(tools.find((candidate) => candidate.name === "image"));
 
         await expectImageToolExecOk(tool, imagePath);
@@ -481,7 +483,7 @@ describe("image tool implicit imageModel config", () => {
   });
 
   it("sandboxes image paths like the read tool", async () => {
-    const stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-image-sandbox-"));
+    const stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "simpleclaw-image-sandbox-"));
     const agentDir = path.join(stateDir, "agent");
     const sandboxRoot = path.join(stateDir, "sandbox");
     await fs.mkdir(agentDir, { recursive: true });
@@ -490,7 +492,7 @@ describe("image tool implicit imageModel config", () => {
     const sandbox = { root: sandboxRoot, bridge: createHostSandboxFsBridge(sandboxRoot) };
 
     vi.stubEnv("OPENAI_API_KEY", "openai-test");
-    const cfg: OpenClawConfig = {
+    const cfg: SimpleClawConfig = {
       agents: { defaults: { model: { primary: "minimax/MiniMax-M2.1" } } },
     };
     const tool = requireImageTool(createImageTool({ config: cfg, agentDir, sandbox }));
@@ -505,7 +507,7 @@ describe("image tool implicit imageModel config", () => {
   });
 
   it("applies tools.fs.workspaceOnly to image paths in sandbox mode", async () => {
-    const stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-image-sandbox-"));
+    const stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "simpleclaw-image-sandbox-"));
     const agentDir = path.join(stateDir, "agent");
     const sandboxRoot = path.join(stateDir, "sandbox");
     await fs.mkdir(agentDir, { recursive: true });
@@ -514,13 +516,13 @@ describe("image tool implicit imageModel config", () => {
 
     const sandbox = createUnsafeMountedSandbox({ sandboxRoot, agentRoot: agentDir });
     const fetch = stubMinimaxOkFetch();
-    const cfg: OpenClawConfig = {
+    const cfg: SimpleClawConfig = {
       ...createMinimaxImageConfig(),
       tools: { fs: { workspaceOnly: true } },
     };
 
     try {
-      const tools = createOpenClawCodingTools({
+      const tools = createSimpleClawCodingTools({
         config: cfg,
         agentDir,
         sandbox,
@@ -548,7 +550,7 @@ describe("image tool implicit imageModel config", () => {
   });
 
   it("rewrites inbound absolute paths into sandbox media/inbound", async () => {
-    const stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-image-sandbox-"));
+    const stateDir = await fs.mkdtemp(path.join(os.tmpdir(), "simpleclaw-image-sandbox-"));
     const agentDir = path.join(stateDir, "agent");
     const sandboxRoot = path.join(stateDir, "sandbox");
     await fs.mkdir(agentDir, { recursive: true });
@@ -564,7 +566,7 @@ describe("image tool implicit imageModel config", () => {
 
     const fetch = stubMinimaxOkFetch();
 
-    const cfg: OpenClawConfig = {
+    const cfg: SimpleClawConfig = {
       agents: {
         defaults: {
           model: { primary: "minimax/MiniMax-M2.1" },
@@ -577,7 +579,7 @@ describe("image tool implicit imageModel config", () => {
 
     const res = await tool.execute("t1", {
       prompt: "Describe the image.",
-      image: "@/Users/steipete/.openclaw/media/inbound/photo.png",
+      image: "@/Users/steipete/.simpleclaw/media/inbound/photo.png",
     });
 
     expect(fetch).toHaveBeenCalledTimes(1);
@@ -632,9 +634,9 @@ describe("image tool MiniMax VLM routing", () => {
     });
     global.fetch = withFetchPreconnect(fetch);
 
-    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-minimax-vlm-"));
+    const agentDir = await fs.mkdtemp(path.join(os.tmpdir(), "simpleclaw-minimax-vlm-"));
     vi.stubEnv("MINIMAX_API_KEY", "minimax-test");
-    const cfg: OpenClawConfig = {
+    const cfg: SimpleClawConfig = {
       agents: { defaults: { model: { primary: "minimax/MiniMax-M2.1" } } },
     };
     const tool = requireImageTool(createImageTool({ config: cfg, agentDir }));

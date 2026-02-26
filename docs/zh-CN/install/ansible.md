@@ -16,7 +16,7 @@ x-i18n:
 
 # Ansible 安装
 
-将 OpenClaw 部署到生产服务器的推荐方式是通过 **[openclaw-ansible](https://github.com/openclaw/openclaw-ansible)** — 一个安全优先架构的自动化安装程序。
+将 OpenClaw 部署到生产服务器的推荐方式是通过 **[openclaw-ansible](https://github.com/simpleclaw/simpleclaw-ansible)** — 一个安全优先架构的自动化安装程序。
 
 ## 快速开始
 
@@ -26,7 +26,7 @@ x-i18n:
 curl -fsSL https://raw.githubusercontent.com/openclaw/openclaw-ansible/main/install.sh | bash
 ```
 
-> **📦 完整指南：[github.com/openclaw/openclaw-ansible](https://github.com/openclaw/openclaw-ansible)**
+> **📦 完整指南：[github.com/simpleclaw/simpleclaw-ansible](https://github.com/simpleclaw/simpleclaw-ansible)**
 >
 > openclaw-ansible 仓库是 Ansible 部署的权威来源。本页是快速概述。
 
@@ -125,7 +125,7 @@ Docker 用于**智能体沙箱**（隔离的工具执行），而不是用于运
 sudo apt update && sudo apt install -y ansible git
 
 # 2. 克隆仓库
-git clone https://github.com/openclaw/openclaw-ansible.git
+git clone https://github.com/simpleclaw/simpleclaw-ansible.git
 cd openclaw-ansible
 
 # 3. 安装 Ansible collections
@@ -203,13 +203,13 @@ openclaw channels login
 
 详细的安全架构和故障排除：
 
-- [安全架构](https://github.com/openclaw/openclaw-ansible/blob/main/docs/security.md)
-- [技术详情](https://github.com/openclaw/openclaw-ansible/blob/main/docs/architecture.md)
-- [故障排除指南](https://github.com/openclaw/openclaw-ansible/blob/main/docs/troubleshooting.md)
+- [安全架构](https://github.com/simpleclaw/simpleclaw-ansible/blob/main/docs/security.md)
+- [技术详情](https://github.com/simpleclaw/simpleclaw-ansible/blob/main/docs/architecture.md)
+- [故障排除指南](https://github.com/simpleclaw/simpleclaw-ansible/blob/main/docs/troubleshooting.md)
 
 ## 相关内容
 
-- [openclaw-ansible](https://github.com/openclaw/openclaw-ansible) — 完整部署指南
+- [openclaw-ansible](https://github.com/simpleclaw/simpleclaw-ansible) — 完整部署指南
 - [Docker](/install/docker) — 容器化 Gateway 网关设置
 - [沙箱隔离](/gateway/sandboxing) — 智能体沙箱配置
 - [多智能体沙箱与工具](/tools/multi-agent-sandbox-tools) — 每个智能体的隔离

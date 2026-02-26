@@ -118,7 +118,7 @@ curl -fsSL https://openclaw.ai/install.sh | bash
 ### Option B: Hackable Install (For tinkering)
 
 ```bash
-git clone https://github.com/openclaw/openclaw.git
+git clone https://github.com/simpleclaw/simpleclaw.git
 cd openclaw
 npm install
 npm run build

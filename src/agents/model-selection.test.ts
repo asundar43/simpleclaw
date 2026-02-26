@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { SimpleClawConfig } from "../config/config.js";
 import { resetLogger, setLoggerOverride } from "../logging/logger.js";
 import {
   buildAllowedModelSet,
@@ -145,7 +145,7 @@ describe("model-selection", () => {
             },
           },
         },
-      } as OpenClawConfig;
+      } as SimpleClawConfig;
 
       expect(
         inferUniqueProviderFromConfiguredModels({
@@ -165,7 +165,7 @@ describe("model-selection", () => {
             },
           },
         },
-      } as OpenClawConfig;
+      } as SimpleClawConfig;
 
       expect(
         inferUniqueProviderFromConfiguredModels({
@@ -184,7 +184,7 @@ describe("model-selection", () => {
             },
           },
         },
-      } as OpenClawConfig;
+      } as SimpleClawConfig;
 
       expect(
         inferUniqueProviderFromConfiguredModels({
@@ -203,7 +203,7 @@ describe("model-selection", () => {
             },
           },
         },
-      } as OpenClawConfig;
+      } as SimpleClawConfig;
 
       expect(
         inferUniqueProviderFromConfiguredModels({
@@ -216,7 +216,7 @@ describe("model-selection", () => {
 
   describe("buildModelAliasIndex", () => {
     it("should build alias index from config", () => {
-      const cfg: Partial<OpenClawConfig> = {
+      const cfg: Partial<SimpleClawConfig> = {
         agents: {
           defaults: {
             models: {
@@ -228,7 +228,7 @@ describe("model-selection", () => {
       };
 
       const index = buildModelAliasIndex({
-        cfg: cfg as OpenClawConfig,
+        cfg: cfg as SimpleClawConfig,
         defaultProvider: "anthropic",
       });
 
@@ -243,7 +243,7 @@ describe("model-selection", () => {
 
   describe("buildAllowedModelSet", () => {
     it("keeps explicitly allowlisted models even when missing from bundled catalog", () => {
-      const cfg: OpenClawConfig = {
+      const cfg: SimpleClawConfig = {
         agents: {
           defaults: {
             model: { primary: "openai/gpt-5.2" },
@@ -252,7 +252,7 @@ describe("model-selection", () => {
             },
           },
         },
-      } as OpenClawConfig;
+      } as SimpleClawConfig;
 
       const catalog = [
         { provider: "anthropic", id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5" },
@@ -275,7 +275,7 @@ describe("model-selection", () => {
 
   describe("resolveAllowedModelRef", () => {
     it("accepts explicit allowlist refs absent from bundled catalog", () => {
-      const cfg: OpenClawConfig = {
+      const cfg: SimpleClawConfig = {
         agents: {
           defaults: {
             model: { primary: "openai/gpt-5.2" },
@@ -284,7 +284,7 @@ describe("model-selection", () => {
             },
           },
         },
-      } as OpenClawConfig;
+      } as SimpleClawConfig;
 
       const catalog = [
         { provider: "anthropic", id: "claude-sonnet-4-5", name: "Claude Sonnet 4.5" },
@@ -339,7 +339,7 @@ describe("model-selection", () => {
       setLoggerOverride({ level: "silent", consoleLevel: "warn" });
       const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
       try {
-        const cfg: Partial<OpenClawConfig> = {
+        const cfg: Partial<SimpleClawConfig> = {
           agents: {
             defaults: {
               model: { primary: "claude-3-5-sonnet" },
@@ -348,7 +348,7 @@ describe("model-selection", () => {
         };
 
         const result = resolveConfiguredModelRef({
-          cfg: cfg as OpenClawConfig,
+          cfg: cfg as SimpleClawConfig,
           defaultProvider: "google",
           defaultModel: "gemini-pro",
         });
@@ -364,9 +364,9 @@ describe("model-selection", () => {
     });
 
     it("should use default provider/model if config is empty", () => {
-      const cfg: Partial<OpenClawConfig> = {};
+      const cfg: Partial<SimpleClawConfig> = {};
       const result = resolveConfiguredModelRef({
-        cfg: cfg as OpenClawConfig,
+        cfg: cfg as SimpleClawConfig,
         defaultProvider: "openai",
         defaultModel: "gpt-4",
       });

@@ -69,8 +69,8 @@ describe("onboard (non-interactive): gateway and remote auth", () => {
       throw new Error("temp home not initialized");
     }
     const stateDir = await fs.mkdtemp(path.join(tempHome, prefix));
-    process.env.OPENCLAW_STATE_DIR = stateDir;
-    delete process.env.OPENCLAW_CONFIG_PATH;
+    process.env.SIMPLECLAW_STATE_DIR = stateDir;
+    delete process.env.SIMPLECLAW_CONFIG_PATH;
     return stateDir;
   };
   const withStateDir = async (
@@ -87,25 +87,25 @@ describe("onboard (non-interactive): gateway and remote auth", () => {
   beforeAll(async () => {
     envSnapshot = captureEnv([
       "HOME",
-      "OPENCLAW_STATE_DIR",
-      "OPENCLAW_CONFIG_PATH",
-      "OPENCLAW_SKIP_CHANNELS",
-      "OPENCLAW_SKIP_GMAIL_WATCHER",
-      "OPENCLAW_SKIP_CRON",
-      "OPENCLAW_SKIP_CANVAS_HOST",
-      "OPENCLAW_SKIP_BROWSER_CONTROL_SERVER",
-      "OPENCLAW_GATEWAY_TOKEN",
-      "OPENCLAW_GATEWAY_PASSWORD",
+      "SIMPLECLAW_STATE_DIR",
+      "SIMPLECLAW_CONFIG_PATH",
+      "SIMPLECLAW_SKIP_CHANNELS",
+      "SIMPLECLAW_SKIP_GMAIL_WATCHER",
+      "SIMPLECLAW_SKIP_CRON",
+      "SIMPLECLAW_SKIP_CANVAS_HOST",
+      "SIMPLECLAW_SKIP_BROWSER_CONTROL_SERVER",
+      "SIMPLECLAW_GATEWAY_TOKEN",
+      "SIMPLECLAW_GATEWAY_PASSWORD",
     ]);
-    process.env.OPENCLAW_SKIP_CHANNELS = "1";
-    process.env.OPENCLAW_SKIP_GMAIL_WATCHER = "1";
-    process.env.OPENCLAW_SKIP_CRON = "1";
-    process.env.OPENCLAW_SKIP_CANVAS_HOST = "1";
-    process.env.OPENCLAW_SKIP_BROWSER_CONTROL_SERVER = "1";
-    delete process.env.OPENCLAW_GATEWAY_TOKEN;
-    delete process.env.OPENCLAW_GATEWAY_PASSWORD;
+    process.env.SIMPLECLAW_SKIP_CHANNELS = "1";
+    process.env.SIMPLECLAW_SKIP_GMAIL_WATCHER = "1";
+    process.env.SIMPLECLAW_SKIP_CRON = "1";
+    process.env.SIMPLECLAW_SKIP_CANVAS_HOST = "1";
+    process.env.SIMPLECLAW_SKIP_BROWSER_CONTROL_SERVER = "1";
+    delete process.env.SIMPLECLAW_GATEWAY_TOKEN;
+    delete process.env.SIMPLECLAW_GATEWAY_PASSWORD;
 
-    tempHome = await makeTempWorkspace("openclaw-onboard-");
+    tempHome = await makeTempWorkspace("simpleclaw-onboard-");
     process.env.HOME = tempHome;
   });
 
@@ -119,7 +119,7 @@ describe("onboard (non-interactive): gateway and remote auth", () => {
   it("writes gateway token auth into config", async () => {
     await withStateDir("state-noninteractive-", async (stateDir) => {
       const token = "tok_test_123";
-      const workspace = path.join(stateDir, "openclaw");
+      const workspace = path.join(stateDir, "simpleclaw");
 
       await runNonInteractiveOnboarding(
         {
@@ -188,11 +188,11 @@ describe("onboard (non-interactive): gateway and remote auth", () => {
       return;
     }
     await withStateDir("state-lan-", async (stateDir) => {
-      process.env.OPENCLAW_STATE_DIR = stateDir;
-      process.env.OPENCLAW_CONFIG_PATH = path.join(stateDir, "openclaw.json");
+      process.env.SIMPLECLAW_STATE_DIR = stateDir;
+      process.env.SIMPLECLAW_CONFIG_PATH = path.join(stateDir, "simpleclaw.json");
 
       const port = getPseudoPort(40_000);
-      const workspace = path.join(stateDir, "openclaw");
+      const workspace = path.join(stateDir, "simpleclaw");
 
       await runNonInteractiveOnboarding(
         {

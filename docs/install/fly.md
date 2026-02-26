@@ -29,7 +29,7 @@ read_when:
 
 ```bash
 # Clone the repo
-git clone https://github.com/openclaw/openclaw.git
+git clone https://github.com/simpleclaw/simpleclaw.git
 cd openclaw
 
 # Create a new Fly app (pick your own name)

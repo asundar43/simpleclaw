@@ -1,6 +1,6 @@
 import { listAgentIds, resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { resolveStorePath } from "../config/sessions.js";
-import type { OpenClawConfig } from "../config/types.openclaw.js";
+import type { SimpleClawConfig } from "../config/types.simpleclaw.js";
 import { normalizeAgentId } from "../routing/session-key.js";
 
 export type SessionStoreSelectionOptions = {
@@ -25,7 +25,7 @@ function dedupeTargetsByStorePath(targets: SessionStoreTarget[]): SessionStoreTa
 }
 
 export function resolveSessionStoreTargets(
-  cfg: OpenClawConfig,
+  cfg: SimpleClawConfig,
   opts: SessionStoreSelectionOptions,
 ): SessionStoreTarget[] {
   const defaultAgentId = resolveDefaultAgentId(cfg);
@@ -60,7 +60,7 @@ export function resolveSessionStoreTargets(
     const requested = normalizeAgentId(opts.agent ?? "");
     if (!knownAgents.includes(requested)) {
       throw new Error(
-        `Unknown agent id "${opts.agent}". Use "openclaw agents list" to see configured agents.`,
+        `Unknown agent id "${opts.agent}". Use "simpleclaw agents list" to see configured agents.`,
       );
     }
     return [

@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
-import type { PluginRuntime } from "openclaw/plugin-sdk";
+import type { PluginRuntime } from "simpleclaw/plugin-sdk";
 import { describe, expect, it } from "vitest";
 import {
   readNostrBusState,
@@ -11,14 +11,15 @@ import {
 import { setNostrRuntime } from "./runtime.js";
 
 async function withTempStateDir<T>(fn: (dir: string) => Promise<T>) {
-  const previous = process.env.OPENCLAW_STATE_DIR;
-  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-nostr-"));
-  process.env.OPENCLAW_STATE_DIR = dir;
+  const previous = process.env.SIMPLECLAW_STATE_DIR;
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "simpleclaw-nostr-"));
+  process.env.SIMPLECLAW_STATE_DIR = dir;
   setNostrRuntime({
     state: {
       resolveStateDir: (env, homedir) => {
         const stateEnv = env ?? process.env;
-        const override = stateEnv.OPENCLAW_STATE_DIR?.trim() || stateEnv.CLAWDBOT_STATE_DIR?.trim();
+        const override =
+          stateEnv.SIMPLECLAW_STATE_DIR?.trim() || stateEnv.CLAWDBOT_STATE_DIR?.trim();
         if (override) {
           return override;
         }
@@ -31,9 +32,9 @@ async function withTempStateDir<T>(fn: (dir: string) => Promise<T>) {
     return await fn(dir);
   } finally {
     if (previous === undefined) {
-      delete process.env.OPENCLAW_STATE_DIR;
+      delete process.env.SIMPLECLAW_STATE_DIR;
     } else {
-      process.env.OPENCLAW_STATE_DIR = previous;
+      process.env.SIMPLECLAW_STATE_DIR = previous;
     }
     await fs.rm(dir, { recursive: true, force: true });
   }

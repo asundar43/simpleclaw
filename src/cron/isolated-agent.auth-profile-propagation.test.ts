@@ -15,7 +15,7 @@ describe("runCronIsolatedAgentTurn auth profile propagation (#20624)", () => {
   it("passes authProfileId to runEmbeddedPiAgent when auth profiles exist", async () => {
     await withTempCronHome(async (home) => {
       // 1. Write session store
-      const sessionsDir = path.join(home, ".openclaw", "sessions");
+      const sessionsDir = path.join(home, ".simpleclaw", "sessions");
       await fs.mkdir(sessionsDir, { recursive: true });
       const storePath = path.join(sessionsDir, "sessions.json");
       await fs.writeFile(
@@ -38,7 +38,7 @@ describe("runCronIsolatedAgentTurn auth profile propagation (#20624)", () => {
       // 2. Write auth-profiles.json in the agent directory
       //    resolveAgentDir returns <stateDir>/agents/main/agent
       //    stateDir = <home>/.openclaw
-      const agentDir = path.join(home, ".openclaw", "agents", "main", "agent");
+      const agentDir = path.join(home, ".simpleclaw", "agents", "main", "agent");
       await fs.mkdir(agentDir, { recursive: true });
       await fs.writeFile(
         path.join(agentDir, "auth-profiles.json"),
@@ -72,7 +72,7 @@ describe("runCronIsolatedAgentTurn auth profile propagation (#20624)", () => {
         agents: {
           defaults: {
             model: { primary: "openrouter/moonshotai/kimi-k2.5" },
-            workspace: path.join(home, "openclaw"),
+            workspace: path.join(home, "simpleclaw"),
           },
         },
       });

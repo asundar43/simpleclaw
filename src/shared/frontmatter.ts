@@ -31,7 +31,7 @@ export function parseFrontmatterBool(value: string | undefined, fallback: boolea
   return parsed === undefined ? fallback : parsed;
 }
 
-export function resolveOpenClawManifestBlock(params: {
+export function resolveSimpleClawManifestBlock(params: {
   frontmatter: Record<string, unknown>;
   key?: string;
 }): Record<string, unknown> | undefined {
@@ -59,16 +59,16 @@ export function resolveOpenClawManifestBlock(params: {
   }
 }
 
-export type OpenClawManifestRequires = {
+export type SimpleClawManifestRequires = {
   bins: string[];
   anyBins: string[];
   env: string[];
   config: string[];
 };
 
-export function resolveOpenClawManifestRequires(
+export function resolveSimpleClawManifestRequires(
   metadataObj: Record<string, unknown>,
-): OpenClawManifestRequires | undefined {
+): SimpleClawManifestRequires | undefined {
   const requiresRaw =
     typeof metadataObj.requires === "object" && metadataObj.requires !== null
       ? (metadataObj.requires as Record<string, unknown>)
@@ -84,7 +84,7 @@ export function resolveOpenClawManifestRequires(
   };
 }
 
-export function resolveOpenClawManifestInstall<T>(
+export function resolveSimpleClawManifestInstall<T>(
   metadataObj: Record<string, unknown>,
   parseInstallSpec: (input: unknown) => T | undefined,
 ): T[] {
@@ -94,11 +94,11 @@ export function resolveOpenClawManifestInstall<T>(
     .filter((entry): entry is T => Boolean(entry));
 }
 
-export function resolveOpenClawManifestOs(metadataObj: Record<string, unknown>): string[] {
+export function resolveSimpleClawManifestOs(metadataObj: Record<string, unknown>): string[] {
   return normalizeStringList(metadataObj.os);
 }
 
-export type ParsedOpenClawManifestInstallBase = {
+export type ParsedSimpleClawManifestInstallBase = {
   raw: Record<string, unknown>;
   kind: string;
   id?: string;
@@ -106,10 +106,10 @@ export type ParsedOpenClawManifestInstallBase = {
   bins?: string[];
 };
 
-export function parseOpenClawManifestInstallBase(
+export function parseSimpleClawManifestInstallBase(
   input: unknown,
   allowedKinds: readonly string[],
-): ParsedOpenClawManifestInstallBase | undefined {
+): ParsedSimpleClawManifestInstallBase | undefined {
   if (!input || typeof input !== "object") {
     return undefined;
   }
@@ -121,7 +121,7 @@ export function parseOpenClawManifestInstallBase(
     return undefined;
   }
 
-  const spec: ParsedOpenClawManifestInstallBase = {
+  const spec: ParsedSimpleClawManifestInstallBase = {
     raw,
     kind,
   };

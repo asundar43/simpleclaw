@@ -1,7 +1,7 @@
 import { upsertAuthProfile } from "../../../agents/auth-profiles.js";
 import { normalizeProviderId } from "../../../agents/model-selection.js";
 import { parseDurationMs } from "../../../cli/parse-duration.js";
-import type { OpenClawConfig } from "../../../config/config.js";
+import type { SimpleClawConfig } from "../../../config/config.js";
 import { upsertSharedEnvVar } from "../../../infra/env-file.js";
 import type { RuntimeEnv } from "../../../runtime.js";
 import { shortenHomePath } from "../../../utils.js";
@@ -65,12 +65,12 @@ import { detectZaiEndpoint } from "../../zai-endpoint-detect.js";
 import { resolveNonInteractiveApiKey } from "../api-keys.js";
 
 export async function applyNonInteractiveAuthChoice(params: {
-  nextConfig: OpenClawConfig;
+  nextConfig: SimpleClawConfig;
   authChoice: AuthChoice;
   opts: OnboardOptions;
   runtime: RuntimeEnv;
-  baseConfig: OpenClawConfig;
-}): Promise<OpenClawConfig | null> {
+  baseConfig: SimpleClawConfig;
+}): Promise<SimpleClawConfig | null> {
   const { authChoice, opts, runtime, baseConfig } = params;
   let nextConfig = params.nextConfig;
 
@@ -551,8 +551,8 @@ export async function applyNonInteractiveAuthChoice(params: {
   }
 
   const applyMoonshotApiKeyChoice = async (
-    applyConfig: (cfg: OpenClawConfig) => OpenClawConfig,
-  ): Promise<OpenClawConfig | null> => {
+    applyConfig: (cfg: SimpleClawConfig) => SimpleClawConfig,
+  ): Promise<SimpleClawConfig | null> => {
     const resolved = await resolveNonInteractiveApiKey({
       provider: "moonshot",
       cfg: baseConfig,

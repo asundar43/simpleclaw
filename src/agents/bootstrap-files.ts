@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/config.js";
+import type { SimpleClawConfig } from "../config/config.js";
 import { getOrLoadBootstrapFiles } from "./bootstrap-cache.js";
 import { applyBootstrapHookOverrides } from "./bootstrap-hooks.js";
 import type { EmbeddedContextFile } from "./pi-embedded-helpers.js";
@@ -43,7 +43,7 @@ function sanitizeBootstrapFiles(
 
 export async function resolveBootstrapFilesForRun(params: {
   workspaceDir: string;
-  config?: OpenClawConfig;
+  config?: SimpleClawConfig;
   sessionKey?: string;
   sessionId?: string;
   agentId?: string;
@@ -71,7 +71,7 @@ export async function resolveBootstrapFilesForRun(params: {
 
 export async function resolveBootstrapContextForRun(params: {
   workspaceDir: string;
-  config?: OpenClawConfig;
+  config?: SimpleClawConfig;
   sessionKey?: string;
   sessionId?: string;
   agentId?: string;

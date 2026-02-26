@@ -212,14 +212,14 @@ function auditGatewayToken(
   if (!expectedToken) {
     return;
   }
-  const serviceToken = command?.environment?.OPENCLAW_GATEWAY_TOKEN?.trim();
+  const serviceToken = command?.environment?.SIMPLECLAW_GATEWAY_TOKEN?.trim();
   if (serviceToken === expectedToken) {
     return;
   }
   issues.push({
     code: SERVICE_AUDIT_CODES.gatewayTokenMismatch,
     message:
-      "Gateway service OPENCLAW_GATEWAY_TOKEN does not match gateway.auth.token in openclaw.json",
+      "Gateway service SIMPLECLAW_GATEWAY_TOKEN does not match gateway.auth.token in simpleclaw.json",
     detail: serviceToken ? "service token is stale" : "service token is missing",
     level: "recommended",
   });
@@ -373,7 +373,7 @@ export function checkTokenDrift(params: {
       code: SERVICE_AUDIT_CODES.gatewayTokenDrift,
       message:
         "Config token differs from service token. The daemon will use the old token after restart.",
-      detail: "Run `openclaw gateway install --force` to sync the token.",
+      detail: "Run `simpleclaw gateway install --force` to sync the token.",
       level: "recommended",
     };
   }

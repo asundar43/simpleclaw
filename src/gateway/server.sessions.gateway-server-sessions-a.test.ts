@@ -98,7 +98,7 @@ let sharedSessionStorePath: string;
 
 beforeAll(async () => {
   harness = await startGatewayServerHarness();
-  sharedSessionStoreDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-sessions-"));
+  sharedSessionStoreDir = await fs.mkdtemp(path.join(os.tmpdir(), "simpleclaw-sessions-"));
   sharedSessionStorePath = path.join(sharedSessionStoreDir, "sessions.json");
 });
 

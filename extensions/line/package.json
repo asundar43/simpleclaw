@@ -1,10 +1,10 @@
 {
-  "name": "@openclaw/line",
+  "name": "@simpleclaw/line",
   "version": "2026.2.25",
   "private": true,
-  "description": "OpenClaw LINE channel plugin",
+  "description": "SimpleClaw LINE channel plugin",
   "type": "module",
-  "openclaw": {
+  "simpleclaw": {
     "extensions": [
       "./index.ts"
     ],
@@ -19,7 +19,7 @@
       "quickstartAllowFrom": true
     },
     "install": {
-      "npmSpec": "@openclaw/line",
+      "npmSpec": "@simpleclaw/line",
       "localPath": "extensions/line",
       "defaultChoice": "npm"
     }

@@ -1,12 +1,12 @@
 {
-  "name": "@openclaw/tlon",
+  "name": "@simpleclaw/tlon",
   "version": "2026.2.25",
-  "description": "OpenClaw Tlon/Urbit channel plugin",
+  "description": "SimpleClaw Tlon/Urbit channel plugin",
   "type": "module",
   "dependencies": {
     "@urbit/aura": "^3.0.0"
   },
-  "openclaw": {
+  "simpleclaw": {
     "extensions": [
       "./index.ts"
     ],
@@ -21,7 +21,7 @@
       "quickstartAllowFrom": true
     },
     "install": {
-      "npmSpec": "@openclaw/tlon",
+      "npmSpec": "@simpleclaw/tlon",
       "localPath": "extensions/tlon",
       "defaultChoice": "npm"
     }

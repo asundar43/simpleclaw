@@ -18,26 +18,26 @@ describe("irc monitor inbound target", () => {
   it("maps DM target to sender nick and preserves raw target", () => {
     expect(
       resolveIrcInboundTarget({
-        target: "openclaw-bot",
+        target: "simpleclaw-bot",
         senderNick: "alice",
       }),
     ).toEqual({
       isGroup: false,
       target: "alice",
-      rawTarget: "openclaw-bot",
+      rawTarget: "simpleclaw-bot",
     });
   });
 
   it("falls back to raw target when sender nick is empty", () => {
     expect(
       resolveIrcInboundTarget({
-        target: "openclaw-bot",
+        target: "simpleclaw-bot",
         senderNick: " ",
       }),
     ).toEqual({
       isGroup: false,
-      target: "openclaw-bot",
-      rawTarget: "openclaw-bot",
+      target: "simpleclaw-bot",
+      rawTarget: "simpleclaw-bot",
     });
   });
 });

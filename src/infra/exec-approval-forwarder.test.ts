@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { SimpleClawConfig } from "../config/config.js";
 import { createExecApprovalForwarder } from "./exec-approval-forwarder.js";
 
 const baseRequest = {
@@ -32,10 +32,10 @@ const TARGETS_CFG = {
       targets: [{ channel: "telegram", to: "123" }],
     },
   },
-} as OpenClawConfig;
+} as SimpleClawConfig;
 
 function createForwarder(params: {
-  cfg: OpenClawConfig;
+  cfg: SimpleClawConfig;
   deliver?: ReturnType<typeof vi.fn>;
   resolveSessionTarget?: () => { channel: string; to: string } | null;
 }) {
@@ -51,7 +51,7 @@ function createForwarder(params: {
   return { deliver, forwarder };
 }
 
-function makeSessionCfg(options: { discordExecApprovalsEnabled?: boolean } = {}): OpenClawConfig {
+function makeSessionCfg(options: { discordExecApprovalsEnabled?: boolean } = {}): SimpleClawConfig {
   return {
     ...(options.discordExecApprovalsEnabled
       ? {
@@ -66,11 +66,11 @@ function makeSessionCfg(options: { discordExecApprovalsEnabled?: boolean } = {})
         }
       : {}),
     approvals: { exec: { enabled: true, mode: "session" } },
-  } as OpenClawConfig;
+  } as SimpleClawConfig;
 }
 
 async function expectDiscordSessionTargetRequest(params: {
-  cfg: OpenClawConfig;
+  cfg: SimpleClawConfig;
   expectedAccepted: boolean;
   expectedDeliveryCount: number;
 }) {
@@ -93,7 +93,7 @@ describe("exec approval forwarder", () => {
     vi.useFakeTimers();
     const cfg = {
       approvals: { exec: { enabled: true, mode: "session" } },
-    } as OpenClawConfig;
+    } as SimpleClawConfig;
 
     const { deliver, forwarder } = createForwarder({
       cfg,
@@ -154,7 +154,7 @@ describe("exec approval forwarder", () => {
 
   it("returns false when forwarding is disabled", async () => {
     const { deliver, forwarder } = createForwarder({
-      cfg: {} as OpenClawConfig,
+      cfg: {} as SimpleClawConfig,
     });
     await expect(forwarder.handleRequested(baseRequest)).resolves.toBe(false);
     expect(deliver).not.toHaveBeenCalled();
@@ -169,7 +169,7 @@ describe("exec approval forwarder", () => {
           sessionFilter: ["(a+)+$"],
         },
       },
-    } as OpenClawConfig;
+    } as SimpleClawConfig;
 
     const { deliver, forwarder } = createForwarder({
       cfg,
@@ -222,7 +222,7 @@ describe("exec approval forwarder", () => {
           targets: [{ channel: "telegram", to: "123" }],
         },
       },
-    } as OpenClawConfig;
+    } as SimpleClawConfig;
     const { deliver, forwarder } = createForwarder({ cfg });
 
     await forwarder.handleResolved({

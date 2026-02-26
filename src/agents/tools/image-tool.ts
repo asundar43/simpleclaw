@@ -1,6 +1,6 @@
 import { type Api, type Context, complete, type Model } from "@mariozechner/pi-ai";
 import { Type } from "@sinclair/typebox";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { SimpleClawConfig } from "../../config/config.js";
 import { resolveUserPath } from "../../utils.js";
 import { getDefaultLocalRoots, loadWebMedia } from "../../web/media.js";
 import { ensureAuthProfileStore, listProfilesForProvider } from "../auth-profiles.js";
@@ -9,7 +9,7 @@ import { minimaxUnderstandImage } from "../minimax-vlm.js";
 import { getApiKeyForModel, requireApiKey, resolveEnvApiKey } from "../model-auth.js";
 import { runWithImageModelFallback } from "../model-fallback.js";
 import { resolveConfiguredModelRef } from "../model-selection.js";
-import { ensureOpenClawModelsJson } from "../models-config.js";
+import { ensureSimpleClawModelsJson } from "../models-config.js";
 import { discoverAuthStorage, discoverModels } from "../pi-model-discovery.js";
 import {
   resolveSandboxedBridgeMediaPath,
@@ -49,7 +49,7 @@ function resolveImageToolMaxTokens(modelMaxTokens: number | undefined, requested
   return Math.min(requestedMaxTokens, modelMaxTokens);
 }
 
-function resolveDefaultModelRef(cfg?: OpenClawConfig): {
+function resolveDefaultModelRef(cfg?: SimpleClawConfig): {
   provider: string;
   model: string;
 } {
@@ -83,7 +83,7 @@ function hasAuthForProvider(params: { provider: string; agentDir: string }): boo
  *   - fall back to OpenAI/Anthropic when available
  */
 export function resolveImageModelConfigForTool(params: {
-  cfg?: OpenClawConfig;
+  cfg?: SimpleClawConfig;
   agentDir: string;
 }): ImageModelConfig | null {
   // Note: We intentionally do NOT gate based on primarySupportsImages here.
@@ -176,7 +176,7 @@ export function resolveImageModelConfigForTool(params: {
   return null;
 }
 
-function pickMaxBytes(cfg?: OpenClawConfig, maxBytesMb?: number): number | undefined {
+function pickMaxBytes(cfg?: SimpleClawConfig, maxBytesMb?: number): number | undefined {
   if (typeof maxBytesMb === "number" && Number.isFinite(maxBytesMb) && maxBytesMb > 0) {
     return Math.floor(maxBytesMb * 1024 * 1024);
   }
@@ -214,7 +214,7 @@ type ImageSandboxConfig = {
 };
 
 async function runImagePrompt(params: {
-  cfg?: OpenClawConfig;
+  cfg?: SimpleClawConfig;
   agentDir: string;
   imageModelConfig: ImageModelConfig;
   modelOverride?: string;
@@ -226,7 +226,7 @@ async function runImagePrompt(params: {
   model: string;
   attempts: Array<{ provider: string; model: string; error: string }>;
 }> {
-  const effectiveCfg: OpenClawConfig | undefined = params.cfg
+  const effectiveCfg: SimpleClawConfig | undefined = params.cfg
     ? {
         ...params.cfg,
         agents: {
@@ -239,7 +239,7 @@ async function runImagePrompt(params: {
       }
     : undefined;
 
-  await ensureOpenClawModelsJson(effectiveCfg, params.agentDir);
+  await ensureSimpleClawModelsJson(effectiveCfg, params.agentDir);
   const authStorage = discoverAuthStorage(params.agentDir);
   const modelRegistry = discoverModels(authStorage, params.agentDir);
 
@@ -302,7 +302,7 @@ async function runImagePrompt(params: {
 }
 
 export function createImageTool(options?: {
-  config?: OpenClawConfig;
+  config?: SimpleClawConfig;
   agentDir?: string;
   workspaceDir?: string;
   sandbox?: ImageSandboxConfig;

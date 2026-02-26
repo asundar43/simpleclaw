@@ -76,7 +76,7 @@ describe("gateway plugin HTTP auth boundary", () => {
 
     await withTempConfig({
       cfg: { gateway: { trustedProxies: [] } },
-      prefix: "openclaw-plugin-http-security-headers-test-",
+      prefix: "simpleclaw-plugin-http-security-headers-test-",
       run: async () => {
         const withoutHsts = createGatewayHttpServer({
           canvasHost: null,
@@ -138,7 +138,7 @@ describe("gateway plugin HTTP auth boundary", () => {
 
     await withTempConfig({
       cfg: { gateway: { trustedProxies: [] } },
-      prefix: "openclaw-plugin-http-auth-test-",
+      prefix: "simpleclaw-plugin-http-auth-test-",
       run: async () => {
         const handlePluginRequest = vi.fn(async (req: IncomingMessage, res: ServerResponse) => {
           const pathname = new URL(req.url ?? "/", "http://localhost").pathname;

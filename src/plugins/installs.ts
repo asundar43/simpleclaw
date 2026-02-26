@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/config.js";
+import type { SimpleClawConfig } from "../config/config.js";
 import type { PluginInstallRecord } from "../config/types.plugins.js";
 import type { NpmSpecResolution } from "../infra/install-source-utils.js";
 
@@ -21,9 +21,9 @@ export function buildNpmResolutionInstallFields(
 }
 
 export function recordPluginInstall(
-  cfg: OpenClawConfig,
+  cfg: SimpleClawConfig,
   update: PluginInstallUpdate,
-): OpenClawConfig {
+): SimpleClawConfig {
   const { pluginId, ...record } = update;
   const installs = {
     ...cfg.plugins?.installs,

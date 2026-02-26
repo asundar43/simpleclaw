@@ -106,7 +106,7 @@ docker compose version
 ## 3) 克隆 OpenClaw 仓库
 
 ```bash
-git clone https://github.com/openclaw/openclaw.git
+git clone https://github.com/simpleclaw/simpleclaw.git
 cd openclaw
 ```
 

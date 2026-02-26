@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { OpenClawConfig } from "../config/config.js";
+import type { SimpleClawConfig } from "../config/config.js";
 import { withEnvAsync } from "../test-utils/env.js";
 import { runCapability } from "./runner.js";
 import { withMediaFixture } from "./runner.test-utils.js";
@@ -28,7 +28,7 @@ describe("runCapability video provider wiring", () => {
     let seenBaseUrl: string | undefined;
     let seenHeaders: Record<string, string> | undefined;
 
-    await withVideoFixture("openclaw-video-merge", async ({ ctx, media, cache }) => {
+    await withVideoFixture("simpleclaw-video-merge", async ({ ctx, media, cache }) => {
       const cfg = {
         models: {
           providers: {
@@ -57,7 +57,7 @@ describe("runCapability video provider wiring", () => {
             },
           },
         },
-      } as unknown as OpenClawConfig;
+      } as unknown as SimpleClawConfig;
 
       const result = await runCapability({
         capability: "video",
@@ -99,7 +99,7 @@ describe("runCapability video provider wiring", () => {
         MOONSHOT_API_KEY: undefined,
       },
       async () => {
-        await withVideoFixture("openclaw-video-auto-moonshot", async ({ ctx, media, cache }) => {
+        await withVideoFixture("simpleclaw-video-auto-moonshot", async ({ ctx, media, cache }) => {
           const cfg = {
             models: {
               providers: {
@@ -116,7 +116,7 @@ describe("runCapability video provider wiring", () => {
                 },
               },
             },
-          } as unknown as OpenClawConfig;
+          } as unknown as SimpleClawConfig;
 
           const result = await runCapability({
             capability: "video",

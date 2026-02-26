@@ -141,7 +141,7 @@ systemctl --user status
 在 WSL 内按照 Linux 入门指南流程：
 
 ```bash
-git clone https://github.com/openclaw/openclaw.git
+git clone https://github.com/simpleclaw/simpleclaw.git
 cd openclaw
 pnpm install
 pnpm ui:build # auto-installs UI deps on first run

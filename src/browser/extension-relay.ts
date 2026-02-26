@@ -6,7 +6,7 @@ import WebSocket, { WebSocketServer } from "ws";
 import { isLoopbackAddress, isLoopbackHost } from "../gateway/net.js";
 import { rawDataToString } from "../infra/ws.js";
 import {
-  probeAuthenticatedOpenClawRelay,
+  probeAuthenticatedSimpleClawRelay,
   resolveRelayAcceptedTokensForPort,
   resolveRelayAuthTokenForPort,
 } from "./extension-relay-auth.js";
@@ -81,7 +81,7 @@ type ConnectedTarget = {
   targetInfo: TargetInfo;
 };
 
-const RELAY_AUTH_HEADER = "x-openclaw-relay-token";
+const RELAY_AUTH_HEADER = "x-simpleclaw-relay-token";
 
 function headerValue(value: string | string[] | undefined): string | undefined {
   if (!value) {
@@ -298,9 +298,9 @@ export async function ensureChromeExtensionRelayServer(opts: {
       case "Browser.getVersion":
         return {
           protocolVersion: "1.3",
-          product: "Chrome/OpenClaw-Extension-Relay",
+          product: "Chrome/SimpleClaw-Extension-Relay",
           revision: "0",
-          userAgent: "OpenClaw-Extension-Relay",
+          userAgent: "SimpleClaw-Extension-Relay",
           jsVersion: "V8",
         };
       case "Browser.setDownloadBehavior":
@@ -402,7 +402,7 @@ export async function ensureChromeExtensionRelayServer(opts: {
       (req.method === "GET" || req.method === "PUT")
     ) {
       const payload: Record<string, unknown> = {
-        Browser: "OpenClaw/extension-relay",
+        Browser: "SimpleClaw/extension-relay",
         "Protocol-Version": "1.3",
       };
       // Only advertise the WS URL if a real extension is connected.
@@ -753,7 +753,7 @@ export async function ensureChromeExtensionRelayServer(opts: {
   } catch (err) {
     if (
       isAddrInUseError(err) &&
-      (await probeAuthenticatedOpenClawRelay({
+      (await probeAuthenticatedSimpleClawRelay({
         baseUrl: info.baseUrl,
         relayAuthHeader: RELAY_AUTH_HEADER,
         relayAuthToken,

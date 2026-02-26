@@ -6,10 +6,10 @@ If you believe you've found a security issue in OpenClaw, please report it priva
 
 Report vulnerabilities directly to the repository where the issue lives:
 
-- **Core CLI and gateway** — [openclaw/openclaw](https://github.com/openclaw/openclaw)
-- **macOS desktop app** — [openclaw/openclaw](https://github.com/openclaw/openclaw) (apps/macos)
-- **iOS app** — [openclaw/openclaw](https://github.com/openclaw/openclaw) (apps/ios)
-- **Android app** — [openclaw/openclaw](https://github.com/openclaw/openclaw) (apps/android)
+- **Core CLI and gateway** — [openclaw/openclaw](https://github.com/simpleclaw/simpleclaw)
+- **macOS desktop app** — [openclaw/openclaw](https://github.com/simpleclaw/simpleclaw) (apps/macos)
+- **iOS app** — [openclaw/openclaw](https://github.com/simpleclaw/simpleclaw) (apps/ios)
+- **Android app** — [openclaw/openclaw](https://github.com/simpleclaw/simpleclaw) (apps/android)
 - **ClawHub** — [openclaw/clawhub](https://github.com/openclaw/clawhub)
 - **Trust and threat model** — [openclaw/trust](https://github.com/openclaw/trust)
 

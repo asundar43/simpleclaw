@@ -169,7 +169,7 @@ openclaw pairing approve whatsapp <code>
 如果你正在开发 OpenClaw 本身，从源代码运行：
 
 ```bash
-git clone https://github.com/openclaw/openclaw.git
+git clone https://github.com/simpleclaw/simpleclaw.git
 cd openclaw
 pnpm install
 pnpm ui:build # 首次运行时自动安装 UI 依赖

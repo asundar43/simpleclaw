@@ -19,8 +19,8 @@ import { isRecord } from "../utils.js";
 import { findDuplicateAgentDirs, formatDuplicateAgentDirError } from "./agent-dirs.js";
 import { applyAgentDefaults, applyModelDefaults, applySessionDefaults } from "./defaults.js";
 import { findLegacyConfigIssues } from "./legacy.js";
-import type { OpenClawConfig, ConfigValidationIssue } from "./types.js";
-import { OpenClawSchema } from "./zod-schema.js";
+import type { SimpleClawConfig, ConfigValidationIssue } from "./types.js";
+import { SimpleClawSchema } from "./zod-schema.js";
 
 const LEGACY_REMOVED_PLUGIN_IDS = new Set(["google-antigravity-auth"]);
 
@@ -30,7 +30,7 @@ function isWorkspaceAvatarPath(value: string, workspaceDir: string): boolean {
   return isPathWithinRoot(workspaceRoot, resolved);
 }
 
-function validateIdentityAvatar(config: OpenClawConfig): ConfigValidationIssue[] {
+function validateIdentityAvatar(config: SimpleClawConfig): ConfigValidationIssue[] {
   const agents = config.agents?.list;
   if (!Array.isArray(agents) || agents.length === 0) {
     return [];
@@ -86,7 +86,7 @@ function validateIdentityAvatar(config: OpenClawConfig): ConfigValidationIssue[]
  */
 export function validateConfigObjectRaw(
   raw: unknown,
-): { ok: true; config: OpenClawConfig } | { ok: false; issues: ConfigValidationIssue[] } {
+): { ok: true; config: SimpleClawConfig } | { ok: false; issues: ConfigValidationIssue[] } {
   const legacyIssues = findLegacyConfigIssues(raw);
   if (legacyIssues.length > 0) {
     return {
@@ -97,7 +97,7 @@ export function validateConfigObjectRaw(
       })),
     };
   }
-  const validated = OpenClawSchema.safeParse(raw);
+  const validated = SimpleClawSchema.safeParse(raw);
   if (!validated.success) {
     return {
       ok: false,
@@ -107,7 +107,7 @@ export function validateConfigObjectRaw(
       })),
     };
   }
-  const duplicates = findDuplicateAgentDirs(validated.data as OpenClawConfig);
+  const duplicates = findDuplicateAgentDirs(validated.data as SimpleClawConfig);
   if (duplicates.length > 0) {
     return {
       ok: false,
@@ -119,19 +119,19 @@ export function validateConfigObjectRaw(
       ],
     };
   }
-  const avatarIssues = validateIdentityAvatar(validated.data as OpenClawConfig);
+  const avatarIssues = validateIdentityAvatar(validated.data as SimpleClawConfig);
   if (avatarIssues.length > 0) {
     return { ok: false, issues: avatarIssues };
   }
   return {
     ok: true,
-    config: validated.data as OpenClawConfig,
+    config: validated.data as SimpleClawConfig,
   };
 }
 
 export function validateConfigObject(
   raw: unknown,
-): { ok: true; config: OpenClawConfig } | { ok: false; issues: ConfigValidationIssue[] } {
+): { ok: true; config: SimpleClawConfig } | { ok: false; issues: ConfigValidationIssue[] } {
   const result = validateConfigObjectRaw(raw);
   if (!result.ok) {
     return result;
@@ -145,7 +145,7 @@ export function validateConfigObject(
 export function validateConfigObjectWithPlugins(raw: unknown):
   | {
       ok: true;
-      config: OpenClawConfig;
+      config: SimpleClawConfig;
       warnings: ConfigValidationIssue[];
     }
   | {
@@ -159,7 +159,7 @@ export function validateConfigObjectWithPlugins(raw: unknown):
 export function validateConfigObjectRawWithPlugins(raw: unknown):
   | {
       ok: true;
-      config: OpenClawConfig;
+      config: SimpleClawConfig;
       warnings: ConfigValidationIssue[];
     }
   | {
@@ -176,7 +176,7 @@ function validateConfigObjectWithPluginsBase(
 ):
   | {
       ok: true;
-      config: OpenClawConfig;
+      config: SimpleClawConfig;
       warnings: ConfigValidationIssue[];
     }
   | {

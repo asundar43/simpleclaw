@@ -25,7 +25,7 @@ vi.mock("../banner.js", () => ({
 }));
 
 vi.mock("../cli-name.js", () => ({
-  resolveCliName: () => "openclaw",
+  resolveCliName: () => "simpleclaw",
 }));
 
 vi.mock("./config-guard.js", () => ({
@@ -51,9 +51,9 @@ beforeEach(() => {
   originalProcessArgv = [...process.argv];
   originalProcessTitle = process.title;
   originalNodeNoWarnings = process.env.NODE_NO_WARNINGS;
-  originalHideBanner = process.env.OPENCLAW_HIDE_BANNER;
+  originalHideBanner = process.env.SIMPLECLAW_HIDE_BANNER;
   delete process.env.NODE_NO_WARNINGS;
-  delete process.env.OPENCLAW_HIDE_BANNER;
+  delete process.env.SIMPLECLAW_HIDE_BANNER;
 });
 
 afterEach(() => {
@@ -65,15 +65,15 @@ afterEach(() => {
     process.env.NODE_NO_WARNINGS = originalNodeNoWarnings;
   }
   if (originalHideBanner === undefined) {
-    delete process.env.OPENCLAW_HIDE_BANNER;
+    delete process.env.SIMPLECLAW_HIDE_BANNER;
   } else {
-    process.env.OPENCLAW_HIDE_BANNER = originalHideBanner;
+    process.env.SIMPLECLAW_HIDE_BANNER = originalHideBanner;
   }
 });
 
 describe("registerPreActionHooks", () => {
   function buildProgram() {
-    const program = new Command().name("openclaw");
+    const program = new Command().name("simpleclaw");
     program.command("status").action(async () => {});
     program.command("doctor").action(async () => {});
     program.command("completion").action(async () => {});
@@ -99,7 +99,7 @@ describe("registerPreActionHooks", () => {
   it("emits banner, resolves config, and enables verbose from --debug", async () => {
     await runCommand({
       parseArgv: ["status"],
-      processArgv: ["node", "openclaw", "status", "--debug"],
+      processArgv: ["node", "simpleclaw", "status", "--debug"],
     });
 
     expect(emitCliBannerMock).toHaveBeenCalledWith("9.9.9-test");
@@ -109,13 +109,13 @@ describe("registerPreActionHooks", () => {
       commandPath: ["status"],
     });
     expect(ensurePluginRegistryLoadedMock).not.toHaveBeenCalled();
-    expect(process.title).toBe("openclaw-status");
+    expect(process.title).toBe("simpleclaw-status");
   });
 
   it("loads plugin registry for plugin-required commands", async () => {
     await runCommand({
       parseArgv: ["message", "send"],
-      processArgv: ["node", "openclaw", "message", "send"],
+      processArgv: ["node", "simpleclaw", "message", "send"],
     });
 
     expect(setVerboseMock).toHaveBeenCalledWith(false);
@@ -130,7 +130,7 @@ describe("registerPreActionHooks", () => {
   it("loads plugin registry for configure command", async () => {
     await runCommand({
       parseArgv: ["configure"],
-      processArgv: ["node", "openclaw", "configure"],
+      processArgv: ["node", "simpleclaw", "configure"],
     });
 
     expect(ensurePluginRegistryLoadedMock).toHaveBeenCalledTimes(1);
@@ -139,7 +139,7 @@ describe("registerPreActionHooks", () => {
   it("loads plugin registry for onboard command", async () => {
     await runCommand({
       parseArgv: ["onboard"],
-      processArgv: ["node", "openclaw", "onboard"],
+      processArgv: ["node", "simpleclaw", "onboard"],
     });
 
     expect(ensurePluginRegistryLoadedMock).toHaveBeenCalledTimes(1);
@@ -148,11 +148,11 @@ describe("registerPreActionHooks", () => {
   it("skips config guard for doctor and completion commands", async () => {
     await runCommand({
       parseArgv: ["doctor"],
-      processArgv: ["node", "openclaw", "doctor"],
+      processArgv: ["node", "simpleclaw", "doctor"],
     });
     await runCommand({
       parseArgv: ["completion"],
-      processArgv: ["node", "openclaw", "completion"],
+      processArgv: ["node", "simpleclaw", "completion"],
     });
 
     expect(ensureConfigReadyMock).not.toHaveBeenCalled();
@@ -161,7 +161,7 @@ describe("registerPreActionHooks", () => {
   it("skips preaction work when argv indicates help/version", async () => {
     await runCommand({
       parseArgv: ["status"],
-      processArgv: ["node", "openclaw", "--version"],
+      processArgv: ["node", "simpleclaw", "--version"],
     });
 
     expect(emitCliBannerMock).not.toHaveBeenCalled();
@@ -169,11 +169,11 @@ describe("registerPreActionHooks", () => {
     expect(ensureConfigReadyMock).not.toHaveBeenCalled();
   });
 
-  it("hides banner when OPENCLAW_HIDE_BANNER is truthy", async () => {
-    process.env.OPENCLAW_HIDE_BANNER = "1";
+  it("hides banner when SIMPLECLAW_HIDE_BANNER is truthy", async () => {
+    process.env.SIMPLECLAW_HIDE_BANNER = "1";
     await runCommand({
       parseArgv: ["status"],
-      processArgv: ["node", "openclaw", "status"],
+      processArgv: ["node", "simpleclaw", "status"],
     });
 
     expect(emitCliBannerMock).not.toHaveBeenCalled();

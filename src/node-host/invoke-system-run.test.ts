@@ -29,17 +29,17 @@ describe("handleSystemRunInvoke mac app exec host routing", () => {
     approvals: Parameters<typeof saveExecApprovals>[0];
     run: (ctx: { tempHome: string }) => Promise<T>;
   }): Promise<T> {
-    const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-exec-approvals-"));
-    const previousOpenClawHome = process.env.OPENCLAW_HOME;
-    process.env.OPENCLAW_HOME = tempHome;
+    const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), "simpleclaw-exec-approvals-"));
+    const previousSimpleClawHome = process.env.SIMPLECLAW_HOME;
+    process.env.SIMPLECLAW_HOME = tempHome;
     saveExecApprovals(params.approvals);
     try {
       return await params.run({ tempHome });
     } finally {
-      if (previousOpenClawHome === undefined) {
-        delete process.env.OPENCLAW_HOME;
+      if (previousSimpleClawHome === undefined) {
+        delete process.env.SIMPLECLAW_HOME;
       } else {
-        process.env.OPENCLAW_HOME = previousOpenClawHome;
+        process.env.SIMPLECLAW_HOME = previousSimpleClawHome;
       }
       fs.rmSync(tempHome, { recursive: true, force: true });
     }
@@ -215,7 +215,7 @@ describe("handleSystemRunInvoke mac app exec host routing", () => {
     );
   });
   it("denies ./sh wrapper spoof in allowlist on-miss mode before execution", async () => {
-    const marker = path.join(os.tmpdir(), `openclaw-wrapper-spoof-${process.pid}-${Date.now()}`);
+    const marker = path.join(os.tmpdir(), `simpleclaw-wrapper-spoof-${process.pid}-${Date.now()}`);
     const runCommand = vi.fn(async () => {
       fs.writeFileSync(marker, "executed");
       return {

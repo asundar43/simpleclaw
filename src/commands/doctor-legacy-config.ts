@@ -1,4 +1,4 @@
-import type { OpenClawConfig } from "../config/config.js";
+import type { SimpleClawConfig } from "../config/config.js";
 import {
   resolveDiscordPreviewStreamMode,
   resolveSlackNativeStreaming,
@@ -6,12 +6,12 @@ import {
   resolveTelegramPreviewStreamMode,
 } from "../config/discord-preview-streaming.js";
 
-export function normalizeLegacyConfigValues(cfg: OpenClawConfig): {
-  config: OpenClawConfig;
+export function normalizeLegacyConfigValues(cfg: SimpleClawConfig): {
+  config: SimpleClawConfig;
   changes: string[];
 } {
   const changes: string[] = [];
-  let next: OpenClawConfig = cfg;
+  let next: SimpleClawConfig = cfg;
 
   const isRecord = (value: unknown): value is Record<string, unknown> =>
     Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -329,7 +329,7 @@ export function normalizeLegacyConfigValues(cfg: OpenClawConfig): {
 
     next = {
       ...next,
-      browser: migratedBrowser as OpenClawConfig["browser"],
+      browser: migratedBrowser as SimpleClawConfig["browser"],
     };
     changes.push(
       `Moved browser.ssrfPolicy.allowPrivateNetwork → browser.ssrfPolicy.dangerouslyAllowPrivateNetwork (${String(resolvedDangerousAllowPrivateNetwork)}).`,

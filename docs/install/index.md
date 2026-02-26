@@ -109,10 +109,10 @@ For VPS/cloud hosts, avoid third-party "1-click" marketplace images when possibl
 
     <Steps>
       <Step title="Clone and build">
-        Clone the [OpenClaw repo](https://github.com/openclaw/openclaw) and build:
+        Clone the [OpenClaw repo](https://github.com/simpleclaw/simpleclaw) and build:
 
         ```bash
-        git clone https://github.com/openclaw/openclaw.git
+        git clone https://github.com/simpleclaw/simpleclaw.git
         cd openclaw
         pnpm install
         pnpm ui:build

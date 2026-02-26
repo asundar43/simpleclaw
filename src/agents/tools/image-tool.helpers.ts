@@ -1,5 +1,5 @@
 import type { AssistantMessage } from "@mariozechner/pi-ai";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { SimpleClawConfig } from "../../config/config.js";
 import {
   resolveAgentModelFallbackValues,
   resolveAgentModelPrimaryValue,
@@ -54,7 +54,7 @@ export function coerceImageAssistantText(params: {
   throw new Error(`Image model returned no text (${params.provider}/${params.model}).`);
 }
 
-export function coerceImageModelConfig(cfg?: OpenClawConfig): ImageModelConfig {
+export function coerceImageModelConfig(cfg?: SimpleClawConfig): ImageModelConfig {
   const primary = resolveAgentModelPrimaryValue(cfg?.agents?.defaults?.imageModel);
   const fallbacks = resolveAgentModelFallbackValues(cfg?.agents?.defaults?.imageModel);
   return {
@@ -64,7 +64,7 @@ export function coerceImageModelConfig(cfg?: OpenClawConfig): ImageModelConfig {
 }
 
 export function resolveProviderVisionModelFromConfig(params: {
-  cfg?: OpenClawConfig;
+  cfg?: SimpleClawConfig;
   provider: string;
 }): string | null {
   const providerCfg = params.cfg?.models?.providers?.[params.provider] as unknown as

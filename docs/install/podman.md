@@ -7,7 +7,7 @@ title: "Podman"
 
 # Podman
 
-Run the OpenClaw gateway in a **rootless** Podman container. Uses the same image as Docker (build from the repo [Dockerfile](https://github.com/openclaw/openclaw/blob/main/Dockerfile)).
+Run the OpenClaw gateway in a **rootless** Podman container. Uses the same image as Docker (build from the repo [Dockerfile](https://github.com/simpleclaw/simpleclaw/blob/main/Dockerfile)).
 
 ## Requirements
 

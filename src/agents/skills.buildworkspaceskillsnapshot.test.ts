@@ -18,7 +18,7 @@ function withWorkspaceHome<T>(workspaceDir: string, cb: () => T): T {
 
 describe("buildWorkspaceSkillSnapshot", () => {
   it("returns an empty snapshot when skills dirs are missing", async () => {
-    const workspaceDir = await tempDirs.make("openclaw-");
+    const workspaceDir = await tempDirs.make("simpleclaw-");
 
     const snapshot = withWorkspaceHome(workspaceDir, () =>
       buildWorkspaceSkillSnapshot(workspaceDir, {
@@ -32,7 +32,7 @@ describe("buildWorkspaceSkillSnapshot", () => {
   });
 
   it("omits disable-model-invocation skills from the prompt", async () => {
-    const workspaceDir = await tempDirs.make("openclaw-");
+    const workspaceDir = await tempDirs.make("simpleclaw-");
     await writeSkill({
       dir: path.join(workspaceDir, "skills", "visible-skill"),
       name: "visible-skill",
@@ -61,7 +61,7 @@ describe("buildWorkspaceSkillSnapshot", () => {
   });
 
   it("keeps prompt output aligned with buildWorkspaceSkillsPrompt", async () => {
-    const workspaceDir = await tempDirs.make("openclaw-");
+    const workspaceDir = await tempDirs.make("simpleclaw-");
     await writeSkill({
       dir: path.join(workspaceDir, "skills", "visible"),
       name: "visible",
@@ -106,7 +106,7 @@ describe("buildWorkspaceSkillSnapshot", () => {
   });
 
   it("truncates the skills prompt when it exceeds the configured char budget", async () => {
-    const workspaceDir = await tempDirs.make("openclaw-");
+    const workspaceDir = await tempDirs.make("simpleclaw-");
 
     // Keep fixture size modest while still forcing truncation logic.
     for (let i = 0; i < 8; i += 1) {
@@ -138,8 +138,8 @@ describe("buildWorkspaceSkillSnapshot", () => {
   });
 
   it("limits discovery for nested repo-style skills roots (dir/skills/*)", async () => {
-    const workspaceDir = await tempDirs.make("openclaw-");
-    const repoDir = await tempDirs.make("openclaw-skills-repo-");
+    const workspaceDir = await tempDirs.make("simpleclaw-");
+    const repoDir = await tempDirs.make("simpleclaw-skills-repo-");
 
     for (let i = 0; i < 8; i += 1) {
       const name = `repo-skill-${String(i).padStart(2, "0")}`;
@@ -175,7 +175,7 @@ describe("buildWorkspaceSkillSnapshot", () => {
   });
 
   it("skips skills whose SKILL.md exceeds maxSkillFileBytes", async () => {
-    const workspaceDir = await tempDirs.make("openclaw-");
+    const workspaceDir = await tempDirs.make("simpleclaw-");
 
     await writeSkill({
       dir: path.join(workspaceDir, "skills", "small-skill"),
@@ -211,8 +211,8 @@ describe("buildWorkspaceSkillSnapshot", () => {
   });
 
   it("detects nested skills roots beyond the first 25 entries", async () => {
-    const workspaceDir = await tempDirs.make("openclaw-");
-    const repoDir = await tempDirs.make("openclaw-skills-repo-");
+    const workspaceDir = await tempDirs.make("simpleclaw-");
+    const repoDir = await tempDirs.make("simpleclaw-skills-repo-");
 
     // Create 30 nested dirs, but only the last one is an actual skill.
     for (let i = 0; i < 30; i += 1) {
@@ -250,8 +250,8 @@ describe("buildWorkspaceSkillSnapshot", () => {
   });
 
   it("enforces maxSkillFileBytes for root-level SKILL.md", async () => {
-    const workspaceDir = await tempDirs.make("openclaw-");
-    const rootSkillDir = await tempDirs.make("openclaw-root-skill-");
+    const workspaceDir = await tempDirs.make("simpleclaw-");
+    const rootSkillDir = await tempDirs.make("simpleclaw-root-skill-");
 
     await writeSkill({
       dir: rootSkillDir,

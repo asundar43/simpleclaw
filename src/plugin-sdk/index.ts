@@ -73,9 +73,9 @@ export {
 } from "../discord/monitor/thread-bindings.js";
 export type {
   AnyAgentTool,
-  OpenClawPluginApi,
-  OpenClawPluginService,
-  OpenClawPluginServiceContext,
+  SimpleClawPluginApi,
+  SimpleClawPluginService,
+  SimpleClawPluginServiceContext,
   ProviderAuthContext,
   ProviderAuthResult,
 } from "../plugins/types.js";
@@ -88,9 +88,9 @@ export type { PluginRuntime, RuntimeLogger } from "../plugins/runtime/types.js";
 export { normalizePluginHttpPath } from "../plugins/http-path.js";
 export { registerPluginHttpRoute } from "../plugins/http-registry.js";
 export { emptyPluginConfigSchema } from "../plugins/config-schema.js";
-export type { OpenClawConfig } from "../config/config.js";
-/** @deprecated Use OpenClawConfig instead */
-export type { OpenClawConfig as ClawdbotConfig } from "../config/config.js";
+export type { SimpleClawConfig } from "../config/config.js";
+/** @deprecated Use SimpleClawConfig instead */
+export type { SimpleClawConfig as ClawdbotConfig } from "../config/config.js";
 export { isDangerousNameMatchingEnabled } from "../config/dangerous-name-matching.js";
 
 export type { FileLockHandle, FileLockOptions } from "./file-lock.js";
@@ -209,7 +209,7 @@ export { createLoggerBackedRuntime } from "./runtime.js";
 export { chunkTextForOutbound } from "./text-chunking.js";
 export { readJsonFileWithFallback, writeJsonFileAtomically } from "./json-store.js";
 export { buildRandomTempFilePath, withTempDownloadPath } from "./temp-path.js";
-export { resolvePreferredOpenClawTmpDir } from "../infra/tmp-openclaw-dir.js";
+export { resolvePreferredSimpleClawTmpDir } from "../infra/tmp-simpleclaw-dir.js";
 export {
   runPluginCommandWithTimeout,
   type PluginCommandRunOptions,

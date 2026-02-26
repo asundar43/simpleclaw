@@ -3,11 +3,11 @@ import path from "node:path";
 import { withTempHome as withTempHomeBase } from "../../test/helpers/temp-home.js";
 
 export async function withTempHome<T>(fn: (home: string) => Promise<T>): Promise<T> {
-  return withTempHomeBase(fn, { prefix: "openclaw-config-" });
+  return withTempHomeBase(fn, { prefix: "simpleclaw-config-" });
 }
 
-export async function writeOpenClawConfig(home: string, config: unknown): Promise<string> {
-  const configPath = path.join(home, ".openclaw", "openclaw.json");
+export async function writeSimpleClawConfig(home: string, config: unknown): Promise<string> {
+  const configPath = path.join(home, ".simpleclaw", "simpleclaw.json");
   await fs.mkdir(path.dirname(configPath), { recursive: true });
   await fs.writeFile(configPath, JSON.stringify(config, null, 2), "utf-8");
   return configPath;
@@ -18,7 +18,7 @@ export async function withTempHomeConfig<T>(
   fn: (params: { home: string; configPath: string }) => Promise<T>,
 ): Promise<T> {
   return withTempHome(async (home) => {
-    const configPath = await writeOpenClawConfig(home, config);
+    const configPath = await writeSimpleClawConfig(home, config);
     return fn({ home, configPath });
   });
 }

@@ -30,7 +30,7 @@ const NOW = Date.now();
 
 function createContainer(overrides: Partial<SandboxContainerInfo> = {}): SandboxContainerInfo {
   return {
-    containerName: "openclaw-sandbox-test",
+    containerName: "simpleclaw-sandbox-test",
     sessionKey: "test-session",
     image: "openclaw/sandbox:latest",
     imageMatch: true,
@@ -43,7 +43,7 @@ function createContainer(overrides: Partial<SandboxContainerInfo> = {}): Sandbox
 
 function createBrowser(overrides: Partial<SandboxBrowserInfo> = {}): SandboxBrowserInfo {
   return {
-    containerName: "openclaw-browser-test",
+    containerName: "simpleclaw-browser-test",
     sessionKey: "test-session",
     image: "openclaw/browser:latest",
     imageMatch: true,

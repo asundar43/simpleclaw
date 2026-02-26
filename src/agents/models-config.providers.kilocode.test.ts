@@ -19,7 +19,7 @@ const KILOCODE_MODEL_IDS = [
 
 describe("Kilo Gateway implicit provider", () => {
   it("should include kilocode when KILOCODE_API_KEY is configured", async () => {
-    const agentDir = mkdtempSync(join(tmpdir(), "openclaw-test-"));
+    const agentDir = mkdtempSync(join(tmpdir(), "simpleclaw-test-"));
     const envSnapshot = captureEnv(["KILOCODE_API_KEY"]);
     process.env.KILOCODE_API_KEY = "test-key";
 
@@ -33,7 +33,7 @@ describe("Kilo Gateway implicit provider", () => {
   });
 
   it("should not include kilocode when no API key is configured", async () => {
-    const agentDir = mkdtempSync(join(tmpdir(), "openclaw-test-"));
+    const agentDir = mkdtempSync(join(tmpdir(), "simpleclaw-test-"));
     const envSnapshot = captureEnv(["KILOCODE_API_KEY"]);
     delete process.env.KILOCODE_API_KEY;
 

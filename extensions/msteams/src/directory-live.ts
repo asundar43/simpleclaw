@@ -1,4 +1,4 @@
-import type { ChannelDirectoryEntry } from "openclaw/plugin-sdk";
+import type { ChannelDirectoryEntry } from "simpleclaw/plugin-sdk";
 import { searchGraphUsers } from "./graph-users.js";
 import {
   type GraphChannel,

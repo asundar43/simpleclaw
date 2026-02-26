@@ -121,7 +121,7 @@ describe("exec PATH login shell merge", () => {
       return;
     }
     process.env.PATH = "/usr/bin";
-    const shellDir = fs.mkdtempSync(path.join(os.tmpdir(), "openclaw-shell-env-"));
+    const shellDir = fs.mkdtempSync(path.join(os.tmpdir(), "simpleclaw-shell-env-"));
     const unregisteredShellPath = path.join(shellDir, "unregistered-shell");
     fs.writeFileSync(unregisteredShellPath, '#!/bin/sh\nexec /bin/sh "$@"\n', {
       encoding: "utf8",
@@ -171,7 +171,7 @@ describe("exec host env validation", () => {
       return;
     }
     const original = process.env.SSLKEYLOGFILE;
-    process.env.SSLKEYLOGFILE = "/tmp/openclaw-ssl-keys.log";
+    process.env.SSLKEYLOGFILE = "/tmp/simpleclaw-ssl-keys.log";
     try {
       const { createExecTool } = await import("./bash-tools.exec.js");
       const tool = createExecTool({ host: "gateway", security: "full", ask: "off" });
@@ -179,7 +179,7 @@ describe("exec host env validation", () => {
         command: "printf '%s' \"${SSLKEYLOGFILE:-}\"",
       });
       const output = normalizeText(result.content.find((c) => c.type === "text")?.text);
-      expect(output).not.toContain("/tmp/openclaw-ssl-keys.log");
+      expect(output).not.toContain("/tmp/simpleclaw-ssl-keys.log");
     } finally {
       if (original === undefined) {
         delete process.env.SSLKEYLOGFILE;

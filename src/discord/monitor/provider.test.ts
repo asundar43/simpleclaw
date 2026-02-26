@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { SimpleClawConfig } from "../../config/config.js";
 import type { RuntimeEnv } from "../../runtime.js";
 
 const {
@@ -230,7 +230,7 @@ describe("monitorDiscordProvider", () => {
     };
   };
 
-  const baseConfig = (): OpenClawConfig =>
+  const baseConfig = (): SimpleClawConfig =>
     ({
       channels: {
         discord: {
@@ -239,7 +239,7 @@ describe("monitorDiscordProvider", () => {
           },
         },
       },
-    }) as OpenClawConfig;
+    }) as SimpleClawConfig;
 
   beforeEach(() => {
     createDiscordNativeCommandMock.mockClear().mockReturnValue({ name: "mock-command" });

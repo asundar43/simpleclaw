@@ -107,7 +107,7 @@ docker compose version
 ## 3) Clone the OpenClaw repository
 
 ```bash
-git clone https://github.com/openclaw/openclaw.git
+git clone https://github.com/simpleclaw/simpleclaw.git
 cd openclaw
 ```
 

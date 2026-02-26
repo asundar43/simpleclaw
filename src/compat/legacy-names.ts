@@ -1,6 +1,6 @@
-export const PROJECT_NAME = "openclaw" as const;
+export const PROJECT_NAME = "simpleclaw" as const;
 
-export const LEGACY_PROJECT_NAMES = [] as const;
+export const LEGACY_PROJECT_NAMES = ["openclaw"] as const;
 
 export const MANIFEST_KEY = PROJECT_NAME;
 

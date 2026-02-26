@@ -104,11 +104,11 @@ export function extractMSTeamsPollVote(
   const pollId =
     readNestedString(value, ["openclawPollId"]) ??
     readNestedString(value, ["pollId"]) ??
-    readNestedString(value, ["openclaw", "pollId"]) ??
-    readNestedString(value, ["openclaw", "poll", "id"]) ??
+    readNestedString(value, ["simpleclaw", "pollId"]) ??
+    readNestedString(value, ["simpleclaw", "poll", "id"]) ??
     readNestedString(value, ["data", "openclawPollId"]) ??
     readNestedString(value, ["data", "pollId"]) ??
-    readNestedString(value, ["data", "openclaw", "pollId"]);
+    readNestedString(value, ["data", "simpleclaw", "pollId"]);
   if (!pollId) {
     return null;
   }

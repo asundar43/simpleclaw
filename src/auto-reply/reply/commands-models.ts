@@ -9,7 +9,7 @@ import {
   resolveConfiguredModelRef,
   resolveModelRefFromString,
 } from "../../agents/model-selection.js";
-import type { OpenClawConfig } from "../../config/config.js";
+import type { SimpleClawConfig } from "../../config/config.js";
 import type { SessionEntry } from "../../config/sessions.js";
 import {
   buildModelsKeyboard,
@@ -34,7 +34,7 @@ export type ModelsProviderData = {
  * Build provider/model data from config and catalog.
  * Exported for reuse by callback handlers.
  */
-export async function buildModelsProviderData(cfg: OpenClawConfig): Promise<ModelsProviderData> {
+export async function buildModelsProviderData(cfg: SimpleClawConfig): Promise<ModelsProviderData> {
   const resolvedDefault = resolveConfiguredModelRef({
     cfg,
     defaultProvider: DEFAULT_PROVIDER,
@@ -182,7 +182,7 @@ function parseModelsArgs(raw: string): {
 
 function resolveProviderLabel(params: {
   provider: string;
-  cfg: OpenClawConfig;
+  cfg: SimpleClawConfig;
   agentDir?: string;
   sessionEntry?: SessionEntry;
 }): string {
@@ -201,7 +201,7 @@ function resolveProviderLabel(params: {
 export function formatModelsAvailableHeader(params: {
   provider: string;
   total: number;
-  cfg: OpenClawConfig;
+  cfg: SimpleClawConfig;
   agentDir?: string;
   sessionEntry?: SessionEntry;
 }): string {
@@ -215,7 +215,7 @@ export function formatModelsAvailableHeader(params: {
 }
 
 export async function resolveModelsCommandReply(params: {
-  cfg: OpenClawConfig;
+  cfg: SimpleClawConfig;
   commandBodyNormalized: string;
   surface?: string;
   currentModel?: string;

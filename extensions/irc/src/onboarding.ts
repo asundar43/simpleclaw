@@ -8,7 +8,7 @@ import {
   type ChannelOnboardingDmPolicy,
   type DmPolicy,
   type WizardPrompter,
-} from "openclaw/plugin-sdk";
+} from "simpleclaw/plugin-sdk";
 import { listIrcAccountIds, resolveDefaultIrcAccountId, resolveIrcAccount } from "./accounts.js";
 import {
   isChannelTarget,
@@ -379,7 +379,7 @@ export const ircOnboardingAdapter: ChannelOnboardingAdapter = {
       const username = String(
         await prompter.text({
           message: "IRC username",
-          initialValue: resolved.config.username || nick || "openclaw",
+          initialValue: resolved.config.username || nick || "simpleclaw",
           validate: (value) => (String(value ?? "").trim() ? undefined : "Required"),
         }),
       ).trim();
@@ -387,7 +387,7 @@ export const ircOnboardingAdapter: ChannelOnboardingAdapter = {
       const realname = String(
         await prompter.text({
           message: "IRC real name",
-          initialValue: resolved.config.realname || "OpenClaw",
+          initialValue: resolved.config.realname || "SimpleClaw",
           validate: (value) => (String(value ?? "").trim() ? undefined : "Required"),
         }),
       ).trim();

@@ -4,19 +4,19 @@ import { buildSystemdUnit } from "./systemd-unit.js";
 describe("buildSystemdUnit", () => {
   it("quotes arguments with whitespace", () => {
     const unit = buildSystemdUnit({
-      description: "OpenClaw Gateway",
-      programArguments: ["/usr/bin/openclaw", "gateway", "--name", "My Bot"],
+      description: "SimpleClaw Gateway",
+      programArguments: ["/usr/bin/simpleclaw", "gateway", "--name", "My Bot"],
       environment: {},
     });
     const execStart = unit.split("\n").find((line) => line.startsWith("ExecStart="));
-    expect(execStart).toBe('ExecStart=/usr/bin/openclaw gateway --name "My Bot"');
+    expect(execStart).toBe('ExecStart=/usr/bin/simpleclaw gateway --name "My Bot"');
   });
 
   it("rejects environment values with line breaks", () => {
     expect(() =>
       buildSystemdUnit({
-        description: "OpenClaw Gateway",
-        programArguments: ["/usr/bin/openclaw", "gateway", "start"],
+        description: "SimpleClaw Gateway",
+        programArguments: ["/usr/bin/simpleclaw", "gateway", "start"],
         environment: {
           INJECT: "ok\nExecStartPre=/bin/touch /tmp/oc15789_rce",
         },
