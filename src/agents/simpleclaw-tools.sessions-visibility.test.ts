@@ -18,10 +18,10 @@ vi.mock("../config/config.js", async (importOriginal) => {
 });
 
 import "./test-helpers/fast-core-tools.js";
-import { createOpenClawTools } from "./openclaw-tools.js";
+import { createSimpleClawTools } from "./simpleclaw-tools.js";
 
 function getSessionsHistoryTool(options?: { sandboxed?: boolean }) {
-  const tool = createOpenClawTools({
+  const tool = createSimpleClawTools({
     agentSessionKey: "main",
     sandboxed: options?.sandboxed,
   }).find((candidate) => candidate.name === "sessions_history");

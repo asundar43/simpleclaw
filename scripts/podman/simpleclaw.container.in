@@ -1,0 +1,26 @@
+# SimpleClaw gateway — Podman Quadlet (rootless)
+# Installed by setup-podman.sh into simpleclaw's ~/.config/containers/systemd/
+# {{SIMPLECLAW_HOME}} is replaced at install time.
+
+[Unit]
+Description=SimpleClaw gateway (rootless Podman)
+
+[Container]
+Image=simpleclaw:local
+ContainerName=simpleclaw
+UserNS=keep-id
+Volume={{SIMPLECLAW_HOME}}/.simpleclaw:/home/node/.simpleclaw
+EnvironmentFile={{SIMPLECLAW_HOME}}/.simpleclaw/.env
+Environment=HOME=/home/node
+Environment=TERM=xterm-256color
+PublishPort=18789:18789
+PublishPort=18790:18790
+Pull=never
+Exec=node dist/index.js gateway --bind lan --port 18789
+
+[Service]
+TimeoutStartSec=300
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
