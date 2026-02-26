@@ -21,8 +21,8 @@ Related:
 
 ## How it works
 
-1. A catalog file (`catalog.json`) lists available plugins and skills with versions and download URLs.
-2. The catalog is hosted on GCS (`gs://simpleclaw-marketplace/catalog.json`).
+1. A catalog API lists available plugins and skills with versions and download URLs.
+2. The catalog is served by the marketplace API on Cloud Run (`https://simpleclaw-marketplace-625948851089.us-central1.run.app/api/catalog`).
 3. Plugins are npm packages hosted on GAR.
 4. Skills are `.tar.gz` archives hosted on GCS.
 5. Authentication uses Google Cloud ADC (Application Default Credentials).
@@ -44,7 +44,7 @@ Add the private registry settings to your SimpleClaw config (`~/.simpleclaw/conf
   "plugins": {
     "registry": {
       "npmRegistry": "https://us-central1-npm.pkg.dev/jarvis-486806/simpleclaw-npm",
-      "catalogUrl": "gs://simpleclaw-marketplace/catalog.json",
+      "catalogUrl": "https://simpleclaw-marketplace-625948851089.us-central1.run.app/api/catalog",
       "authMethod": "gcloud-adc"
     }
   }

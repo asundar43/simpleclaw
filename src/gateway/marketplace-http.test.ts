@@ -191,7 +191,7 @@ beforeEach(() => {
   configSnapshot = {
     plugins: {
       registry: {
-        catalogUrl: "gs://simpleclaw-marketplace/catalog.json",
+        catalogUrl: "https://simpleclaw-marketplace-625948851089.us-central1.run.app/api/catalog",
         authMethod: "gcloud-adc",
       },
     },
