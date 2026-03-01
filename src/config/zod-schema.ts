@@ -752,6 +752,16 @@ export const SimpleClawSchema = z
               .strict(),
           )
           .optional(),
+        registry: z
+          .object({
+            npmRegistry: z.string().optional(),
+            dockerRegistry: z.string().optional(),
+            catalogUrl: z.string().optional(),
+            authMethod: z.enum(["gcloud-adc", "token", "npmrc"]).optional(),
+            authToken: z.string().optional(),
+          })
+          .strict()
+          .optional(),
       })
       .strict()
       .optional(),

@@ -24,7 +24,7 @@ env:
 jobs:
   # Build amd64 image
   build-amd64:
-    runs-on: blacksmith-16vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     permissions:
       packages: write
       contents: read
@@ -81,9 +81,10 @@ jobs:
           provenance: false
           push: true
 
-  # Build arm64 image
+  # Build arm64 image (disabled — GitHub-hosted ARM runners require a paid plan)
   build-arm64:
-    runs-on: blacksmith-16vcpu-ubuntu-2404-arm
+    if: false
+    runs-on: ubuntu-latest
     permissions:
       packages: write
       contents: read
@@ -140,13 +141,13 @@ jobs:
           provenance: false
           push: true
 
-  # Create multi-platform manifest
+  # Create image manifest (amd64-only while ARM job is disabled)
   create-manifest:
-    runs-on: blacksmith-16vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     permissions:
       packages: write
       contents: read
-    needs: [build-amd64, build-arm64]
+    needs: [build-amd64]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -194,5 +195,4 @@ jobs:
             args+=("-t" "$tag")
           done
           docker buildx imagetools create "${args[@]}" \
-            ${{ needs.build-amd64.outputs.image-digest }} \
-            ${{ needs.build-arm64.outputs.image-digest }}
+            ${{ needs.build-amd64.outputs.image-digest }}
