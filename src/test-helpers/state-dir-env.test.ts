@@ -9,7 +9,7 @@ import {
 } from "./state-dir-env.js";
 
 type EnvSnapshot = {
-  openclaw?: string;
+  simpleclaw?: string;
   legacy?: string;
 };
 
