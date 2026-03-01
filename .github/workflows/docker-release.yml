@@ -23,7 +23,9 @@ env:
 
 jobs:
   # Build amd64 image
+  # Disabled — pnpm build requires A2UI canvas sources not available in this fork.
   build-amd64:
+    if: false
     runs-on: ubuntu-latest
     permissions:
       packages: write
