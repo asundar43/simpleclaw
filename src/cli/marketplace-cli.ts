@@ -290,6 +290,7 @@ export function registerMarketplaceCli(program: Command) {
           const installResult = await installSkillFromArchiveUrl({
             name: skillName,
             archiveUrl: catalogEntry.archiveUrl,
+            catalogEntry,
             authToken: authToken ?? undefined,
             logger: {
               info: (msg) => defaultRuntime.log(msg),
@@ -421,6 +422,7 @@ async function installSkillFromCatalog(
   const result = await installSkillFromArchiveUrl({
     name: skillEntry.name,
     archiveUrl: skillEntry.archiveUrl,
+    catalogEntry: skillEntry,
     authToken: authToken ?? undefined,
     logger: {
       info: (msg) => defaultRuntime.log(msg),

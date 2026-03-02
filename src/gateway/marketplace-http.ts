@@ -192,6 +192,7 @@ async function doInstallSkill(
   const result = await installSkillFromArchiveUrl({
     name: entry.name,
     archiveUrl: entry.archiveUrl,
+    catalogEntry: entry,
     authToken: authToken ?? undefined,
   });
 
@@ -435,6 +436,7 @@ async function handleSync(req: IncomingMessage, res: ServerResponse): Promise<bo
           const installResult = await installSkillFromArchiveUrl({
             name: skillName,
             archiveUrl: catalogEntry.archiveUrl,
+            catalogEntry,
             authToken: authToken ?? undefined,
           });
 

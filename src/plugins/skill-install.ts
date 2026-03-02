@@ -51,20 +51,53 @@ function validateSkillName(name: string): void {
   }
 }
 
+// ── Catalog verification ─────────────────────────────────────
+
+export type CatalogEntry = {
+  name: string;
+  archiveUrl: string;
+  version: string;
+};
+
+/** Verify that the install parameters match a catalog entry. */
+function verifyCatalogEntry(
+  name: string,
+  archiveUrl: string,
+  catalogEntry: CatalogEntry,
+): string | null {
+  if (name !== catalogEntry.name) {
+    return `Skill name "${name}" does not match catalog entry "${catalogEntry.name}"`;
+  }
+  if (archiveUrl !== catalogEntry.archiveUrl) {
+    return `Archive URL does not match catalog entry for skill "${name}"`;
+  }
+  return null;
+}
+
 // ── Core install function ────────────────────────────────────
 
 /**
  * Download a skill archive from a URL (GCS or HTTPS) and extract to the
  * managed skills directory (~/.simpleclaw/skills/<name>/).
+ *
+ * Requires a verified catalog entry — skills can only be installed from the
+ * marketplace catalog.
  */
 export async function installSkillFromArchiveUrl(params: {
   name: string;
   archiveUrl: string;
+  catalogEntry: CatalogEntry;
   managedSkillsDir?: string;
   authToken?: string;
   logger?: SkillInstallLogger;
 }): Promise<SkillInstallResult> {
-  const { name, archiveUrl, logger } = params;
+  const { name, archiveUrl, logger, catalogEntry } = params;
+
+  // Verify the install matches a catalog entry (marketplace-only enforcement)
+  const mismatch = verifyCatalogEntry(name, archiveUrl, catalogEntry);
+  if (mismatch) {
+    return { ok: false, error: mismatch };
+  }
 
   try {
     validateSkillName(name);

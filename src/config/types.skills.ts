@@ -36,7 +36,7 @@ export type SkillsLimitsConfig = {
 };
 
 export type SkillInstallRecord = {
-  source: "marketplace" | "archive";
+  source: "marketplace";
   version?: string;
   archiveUrl?: string;
   installedAt?: string;
@@ -49,6 +49,6 @@ export type SkillsConfig = {
   install?: SkillsInstallConfig;
   limits?: SkillsLimitsConfig;
   entries?: Record<string, SkillConfig>;
-  /** Installed marketplace/archive skill records. */
+  /** Installed marketplace skill records. */
   installs?: Record<string, SkillInstallRecord>;
 };

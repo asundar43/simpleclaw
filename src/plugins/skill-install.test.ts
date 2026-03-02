@@ -63,7 +63,7 @@ describe("recordSkillInstall", () => {
     };
     const next = recordSkillInstall(existing, {
       skillName: "new-skill",
-      source: "archive",
+      source: "marketplace",
       version: "3.0.0",
     });
     expect(next.skills?.installs?.["existing-skill"]?.version).toBe("1.0.0");
@@ -104,7 +104,7 @@ describe("removeSkillInstall", () => {
             installedAt: "2026-01-01T00:00:00.000Z",
           },
           "other-skill": {
-            source: "archive" as const,
+            source: "marketplace" as const,
             version: "2.0.0",
             installedAt: "2026-01-01T00:00:00.000Z",
           },
@@ -145,13 +145,52 @@ describe("installSkillFromArchiveUrl", () => {
     await fs.rm(tmpDir, { recursive: true, force: true });
   });
 
-  it("rejects skill names with path traversal", async () => {
-    // Import dynamically to use mocked dependencies
+  it("rejects when catalog entry name does not match", async () => {
     const { installSkillFromArchiveUrl } = await import("./skill-install.js");
 
     const result = await installSkillFromArchiveUrl({
-      name: "../escape",
+      name: "my-skill",
       archiveUrl: "https://example.com/skill.tar.gz",
+      catalogEntry: {
+        name: "other-skill",
+        archiveUrl: "https://example.com/skill.tar.gz",
+        version: "1.0.0",
+      },
+      managedSkillsDir: tmpDir,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toContain("does not match catalog entry");
+    }
+  });
+
+  it("rejects when archive URL does not match catalog entry", async () => {
+    const { installSkillFromArchiveUrl } = await import("./skill-install.js");
+
+    const result = await installSkillFromArchiveUrl({
+      name: "my-skill",
+      archiveUrl: "https://evil.com/backdoor.tar.gz",
+      catalogEntry: {
+        name: "my-skill",
+        archiveUrl: "https://example.com/skill.tar.gz",
+        version: "1.0.0",
+      },
+      managedSkillsDir: tmpDir,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toContain("does not match catalog entry");
+    }
+  });
+
+  it("rejects skill names with path traversal", async () => {
+    const { installSkillFromArchiveUrl } = await import("./skill-install.js");
+
+    const archiveUrl = "https://example.com/skill.tar.gz";
+    const result = await installSkillFromArchiveUrl({
+      name: "../escape",
+      archiveUrl,
+      catalogEntry: { name: "../escape", archiveUrl, version: "1.0.0" },
       managedSkillsDir: tmpDir,
     });
     expect(result.ok).toBe(false);
@@ -163,9 +202,11 @@ describe("installSkillFromArchiveUrl", () => {
   it("rejects skill names starting with a dot", async () => {
     const { installSkillFromArchiveUrl } = await import("./skill-install.js");
 
+    const archiveUrl = "https://example.com/skill.tar.gz";
     const result = await installSkillFromArchiveUrl({
       name: ".hidden",
-      archiveUrl: "https://example.com/skill.tar.gz",
+      archiveUrl,
+      catalogEntry: { name: ".hidden", archiveUrl, version: "1.0.0" },
       managedSkillsDir: tmpDir,
     });
     expect(result.ok).toBe(false);
@@ -185,9 +226,11 @@ describe("installSkillFromArchiveUrl", () => {
 
     const { installSkillFromArchiveUrl } = await import("./skill-install.js");
 
+    const archiveUrl = "https://example.com/skill.tar.gz";
     const result = await installSkillFromArchiveUrl({
       name: "test-skill",
-      archiveUrl: "https://example.com/skill.tar.gz",
+      archiveUrl,
+      catalogEntry: { name: "test-skill", archiveUrl, version: "1.0.0" },
       managedSkillsDir: tmpDir,
     });
     expect(result.ok).toBe(false);
@@ -216,9 +259,11 @@ describe("installSkillFromArchiveUrl", () => {
 
     const { installSkillFromArchiveUrl } = await import("./skill-install.js");
 
+    const archiveUrl = "https://example.com/skill.tar.gz";
     const result = await installSkillFromArchiveUrl({
       name: "bad-skill",
-      archiveUrl: "https://example.com/skill.tar.gz",
+      archiveUrl,
+      catalogEntry: { name: "bad-skill", archiveUrl, version: "1.0.0" },
       managedSkillsDir: tmpDir,
     });
     expect(result.ok).toBe(false);
@@ -235,7 +280,7 @@ describe("installSkillFromArchiveUrl", () => {
 
     mockFetch.mockResolvedValueOnce({
       response: new Response(Buffer.from("fake-archive")),
-      finalUrl: "https://example.com/skill.tar.gz",
+      finalUrl: "gs://bucket/skills/good-skill-1.0.0.tar.gz",
       release: vi.fn().mockResolvedValue(undefined),
     });
 
@@ -250,9 +295,11 @@ describe("installSkillFromArchiveUrl", () => {
 
     const { installSkillFromArchiveUrl } = await import("./skill-install.js");
 
+    const archiveUrl = "gs://bucket/skills/good-skill-1.0.0.tar.gz";
     const result = await installSkillFromArchiveUrl({
       name: "good-skill",
-      archiveUrl: "gs://bucket/skills/good-skill-1.0.0.tar.gz",
+      archiveUrl,
+      catalogEntry: { name: "good-skill", archiveUrl, version: "1.0.0" },
       managedSkillsDir: tmpDir,
     });
     expect(result.ok).toBe(true);

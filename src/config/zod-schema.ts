@@ -703,7 +703,7 @@ export const SimpleClawSchema = z
             z.string(),
             z
               .object({
-                source: z.union([z.literal("marketplace"), z.literal("archive")]),
+                source: z.literal("marketplace"),
                 version: z.string().optional(),
                 archiveUrl: z.string().optional(),
                 installedAt: z.string().optional(),

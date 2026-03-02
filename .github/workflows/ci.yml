@@ -124,10 +124,9 @@ jobs:
           echo "run_android=${run_android}" >> "$GITHUB_OUTPUT"
 
   # Build dist once for Node-relevant changes and share it with downstream jobs.
-  # Disabled — A2UI canvas sources are not available in this fork; pnpm build fails.
   build-artifacts:
-    if: false
     needs: [docs-scope, changed-scope, check]
+    if: needs.docs-scope.outputs.docs_only != 'true' && (github.event_name == 'push' || needs.changed-scope.outputs.run_node == 'true')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -139,6 +138,13 @@ jobs:
         uses: ./.github/actions/setup-node-env
         with:
           install-bun: "false"
+
+      - name: Create A2UI stub bundle
+        run: |
+          # A2UI canvas sources are not in this fork. The bundle is gitignored,
+          # so we create a stub so pnpm build (via bundle-a2ui.sh) succeeds.
+          mkdir -p src/canvas-host/a2ui
+          echo "// stub" > src/canvas-host/a2ui/a2ui.bundle.js
 
       - name: Build dist
         run: pnpm build

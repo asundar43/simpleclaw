@@ -1,0 +1,129 @@
+name: Publish to GAR
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      dist_tag:
+        description: "Dist-tag to publish with"
+        required: false
+        default: "latest"
+        type: choice
+        options:
+          - latest
+          - beta
+          - dev
+      dry_run:
+        description: "Dry run (do not actually publish)"
+        required: false
+        default: false
+        type: boolean
+      scope:
+        description: "What to publish"
+        required: false
+        default: "all"
+        type: choice
+        options:
+          - all
+          - core-only
+          - extensions-only
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish-gar-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  GAR_REGION: us-central1
+  GAR_PROJECT: jarvis-486806
+  GAR_REPO: simpleclaw-npm
+  GCS_CATALOG_URL: gs://simpleclaw-marketplace/catalog.json
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: false
+
+      - name: Setup Node environment
+        uses: ./.github/actions/setup-node-env
+
+      - name: Create A2UI stub bundle
+        run: |
+          # A2UI canvas sources are not in this fork. The bundle is gitignored,
+          # so we create a stub so pnpm build (via bundle-a2ui.sh) succeeds.
+          mkdir -p src/canvas-host/a2ui
+          echo "// stub — A2UI sources not available in this fork" > src/canvas-host/a2ui/a2ui.bundle.js
+
+      - name: Build
+        run: pnpm build
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_WIF_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Resolve dist-tag
+        id: dist-tag
+        shell: bash
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ inputs.dist_tag }}" >> "$GITHUB_OUTPUT"
+          elif [[ "$GITHUB_REF" =~ -beta\. ]]; then
+            echo "tag=beta" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Resolve scope flags
+        id: scope
+        shell: bash
+        run: |
+          FLAGS=""
+          SCOPE="${{ inputs.scope }}"
+          case "${SCOPE:-all}" in
+            core-only) FLAGS="--core-only" ;;
+            extensions-only) FLAGS="--extensions-only" ;;
+          esac
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            FLAGS="$FLAGS --dry-run"
+          fi
+          echo "flags=$FLAGS" >> "$GITHUB_OUTPUT"
+
+      - name: Publish to GAR
+        env:
+          GAR_PROJECT: ${{ env.GAR_PROJECT }}
+          GAR_REGION: ${{ env.GAR_REGION }}
+          GAR_REPO: ${{ env.GAR_REPO }}
+          GCS_CATALOG_URL: ${{ env.GCS_CATALOG_URL }}
+        run: |
+          scripts/publish-to-gar.sh \
+            --tag "${{ steps.dist-tag.outputs.tag }}" \
+            --catalog \
+            ${{ steps.scope.outputs.flags }}
+
+      - name: Verify published version
+        if: inputs.dry_run != true
+        env:
+          GAR_REGISTRY: "https://${{ env.GAR_REGION }}-npm.pkg.dev/${{ env.GAR_PROJECT }}/${{ env.GAR_REPO }}"
+        run: |
+          TOKEN=$(gcloud auth print-access-token)
+          npm config set "//${{ env.GAR_REGION }}-npm.pkg.dev/${{ env.GAR_PROJECT }}/${{ env.GAR_REPO }}/:_authToken" "$TOKEN"
+          EXPECTED=$(node -e "console.log(require('./package.json').version)")
+          ACTUAL=$(npm view simpleclaw version --registry "$GAR_REGISTRY" 2>/dev/null || echo "NOT_FOUND")
+          echo "Expected: $EXPECTED, Published: $ACTUAL"
+          if [ "$ACTUAL" != "$EXPECTED" ]; then
+            echo "::warning::Published version ($ACTUAL) does not match package.json ($EXPECTED)"
+          fi
