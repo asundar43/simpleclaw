@@ -154,6 +154,14 @@ const CORE_TOOL_DEFINITIONS: CoreToolDefinition[] = [
     includeInSimpleClawGroup: true,
   },
   {
+    id: "wait",
+    label: "wait",
+    description: "Wait for more results",
+    sectionId: "sessions",
+    profiles: ["coding", "messaging"],
+    includeInSimpleClawGroup: true,
+  },
+  {
     id: "session_status",
     label: "session_status",
     description: "Session status",

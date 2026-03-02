@@ -12,6 +12,13 @@ import { type DeliveryContext, normalizeDeliveryContext } from "../utils/deliver
 import { resetAnnounceQueuesForTests } from "./subagent-announce-queue.js";
 import { runSubagentAnnounceFlow, type SubagentRunOutcome } from "./subagent-announce.js";
 import {
+  formatBatchResults,
+  getBatch,
+  getBatchIdForRun,
+  recordBatchRunCompletion,
+  removeBatch,
+} from "./subagent-batch.js";
+import {
   SUBAGENT_ENDED_OUTCOME_KILLED,
   SUBAGENT_ENDED_REASON_COMPLETE,
   SUBAGENT_ENDED_REASON_ERROR,
@@ -41,6 +48,7 @@ import {
   restoreSubagentRunsFromDisk,
 } from "./subagent-registry-state.js";
 import type { SubagentRunRecord } from "./subagent-registry.types.js";
+import { markNamedAgentIdleBySessionKey } from "./subagent-roster.js";
 import { resolveAgentTimeoutMs } from "./timeout.js";
 
 export type { SubagentRunRecord } from "./subagent-registry.types.js";
@@ -314,6 +322,26 @@ function startSubagentAnnounceCleanupFlow(runId: string, entry: SubagentRunRecor
   if (!beginSubagentCleanup(runId)) {
     return false;
   }
+
+  // Mark any associated named agent as idle now that the run has ended.
+  markNamedAgentIdleBySessionKey(entry.childSessionKey);
+
+  // Check if this run is part of a batch with autoAggregate enabled.
+  const batchId = entry.batchId || getBatchIdForRun(runId);
+  if (batchId) {
+    const batch = getBatch(batchId);
+    if (batch?.autoAggregate) {
+      void handleBatchRunCompletion(runId, entry, batchId);
+      return true;
+    }
+  }
+
+  startSingleRunAnnounceFlow(runId, entry);
+  return true;
+}
+
+/** Fire the normal per-run announce flow (non-batched or batch with autoAggregate=false). */
+function startSingleRunAnnounceFlow(runId: string, entry: SubagentRunRecord) {
   const requesterOrigin = normalizeDeliveryContext(entry.requesterOrigin);
   void runSubagentAnnounceFlow({
     childSessionKey: entry.childSessionKey,
@@ -334,7 +362,94 @@ function startSubagentAnnounceCleanupFlow(runId: string, entry: SubagentRunRecor
   }).then((didAnnounce) => {
     void finalizeSubagentCleanup(runId, entry.cleanup, didAnnounce);
   });
-  return true;
+}
+
+/**
+ * Handle a batch run completion. Records the result in the batch manager.
+ * If the batch is now complete, fires a single aggregated announce for all runs.
+ * If incomplete, suppresses the individual announce (cleanup deferred).
+ */
+async function handleBatchRunCompletion(runId: string, entry: SubagentRunRecord, batchId: string) {
+  // Read the latest output from this subagent to use as findings.
+  let findings: string | undefined;
+  try {
+    const history = await callGateway<{ messages?: Array<unknown> }>({
+      method: "chat.history",
+      params: { sessionKey: entry.childSessionKey, limit: 20 },
+      timeoutMs: 10_000,
+    });
+    const messages = Array.isArray(history?.messages) ? history.messages : [];
+    for (let i = messages.length - 1; i >= 0; i -= 1) {
+      const msg = messages[i] as { role?: string; content?: unknown };
+      if (msg?.role === "assistant" && typeof msg.content === "string" && msg.content.trim()) {
+        findings = msg.content.trim();
+        break;
+      }
+    }
+  } catch {
+    // Best-effort: findings will be empty if we can't read output.
+  }
+
+  const result = recordBatchRunCompletion({
+    runId,
+    outcome: entry.outcome ?? { status: "unknown" },
+    findings,
+    label: entry.label,
+    endedAt: entry.endedAt,
+  });
+
+  if (!result) {
+    // Run is not (or no longer) part of a batch — fall back to normal announce.
+    startSingleRunAnnounceFlow(runId, entry);
+    return;
+  }
+
+  if (!result.complete) {
+    // Batch still has pending runs. Suppress this individual announce.
+    // Mark cleanup as "done" for this individual run to prevent retries.
+    void finalizeSubagentCleanup(runId, entry.cleanup, true);
+    return;
+  }
+
+  // Batch is complete — send aggregated announce.
+  const batch = getBatch(batchId);
+  if (!batch) {
+    // Should not happen, but fall back to single announce.
+    startSingleRunAnnounceFlow(runId, entry);
+    return;
+  }
+
+  const aggregatedMessage = formatBatchResults(batchId);
+  const requesterOrigin = normalizeDeliveryContext(entry.requesterOrigin);
+
+  // Use the last-completing run's session to anchor the announce.
+  void runSubagentAnnounceFlow({
+    childSessionKey: entry.childSessionKey,
+    childRunId: entry.runId,
+    requesterSessionKey: batch.requesterSessionKey,
+    requesterOrigin,
+    requesterDisplayKey: entry.requesterDisplayKey,
+    task: batch.label || `batch of ${batch.runIds.size} tasks`,
+    timeoutMs: SUBAGENT_ANNOUNCE_TIMEOUT_MS,
+    cleanup: entry.cleanup,
+    waitForCompletion: false,
+    startedAt: entry.startedAt,
+    endedAt: entry.endedAt,
+    label: batch.label || `batch (${batch.runIds.size} runs)`,
+    outcome: entry.outcome,
+    spawnMode: entry.spawnMode,
+    expectsCompletionMessage: entry.expectsCompletionMessage,
+    roundOneReply: aggregatedMessage,
+  }).then((didAnnounce) => {
+    // Finalize cleanup for ALL runs in the batch.
+    for (const batchRunId of batch.runIds) {
+      const batchEntry = subagentRuns.get(batchRunId);
+      if (batchEntry) {
+        void finalizeSubagentCleanup(batchRunId, batchEntry.cleanup, didAnnounce);
+      }
+    }
+    removeBatch(batchId);
+  });
 }
 
 function resumeSubagentRun(runId: string) {
@@ -821,6 +936,7 @@ export function registerSubagentRun(params: {
   runTimeoutSeconds?: number;
   expectsCompletionMessage?: boolean;
   spawnMode?: "run" | "session";
+  batchId?: string;
 }) {
   const now = Date.now();
   const cfg = loadConfig();
@@ -848,6 +964,7 @@ export function registerSubagentRun(params: {
     startedAt: now,
     archiveAtMs,
     cleanupHandled: false,
+    batchId: params.batchId,
   });
   ensureListener();
   persistSubagentRuns();

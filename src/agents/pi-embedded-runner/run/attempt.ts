@@ -44,6 +44,7 @@ import { resolveImageSanitizationLimits } from "../../image-sanitization.js";
 import { resolveModelAuthMode } from "../../model-auth.js";
 import { resolveDefaultModelForAgent } from "../../model-selection.js";
 import { createOllamaStreamFn, OLLAMA_NATIVE_BASE_URL } from "../../ollama-stream.js";
+import { resolveAgentRole, buildOrchestratorSystemPromptSection } from "../../orchestrator-role.js";
 import { resolveOwnerDisplaySetting } from "../../owner-display.js";
 import {
   isCloudCodeAssistFormatError,
@@ -527,11 +528,20 @@ export async function runEmbeddedAttempt(
     const ttsHint = params.config ? buildTtsSystemPromptHint(params.config) : undefined;
     const ownerDisplay = resolveOwnerDisplaySetting(params.config);
 
+    // Orchestrator role: inject roster/batch status into the system prompt.
+    const orchestratorSection = buildOrchestratorSystemPromptSection({
+      role: params.config ? resolveAgentRole(params.config, sessionAgentId) : undefined,
+      requesterSessionKey: params.sessionKey ?? params.sessionId,
+    });
+    const effectiveExtraSystemPrompt = orchestratorSection
+      ? [orchestratorSection, params.extraSystemPrompt].filter(Boolean).join("\n\n")
+      : params.extraSystemPrompt;
+
     const appendPrompt = buildEmbeddedSystemPrompt({
       workspaceDir: effectiveWorkspace,
       defaultThinkLevel: params.thinkLevel,
       reasoningLevel: params.reasoningLevel ?? "off",
-      extraSystemPrompt: params.extraSystemPrompt,
+      extraSystemPrompt: effectiveExtraSystemPrompt,
       ownerNumbers: params.ownerNumbers,
       ownerDisplay: ownerDisplay.ownerDisplay,
       ownerDisplaySecret: ownerDisplay.ownerDisplaySecret,

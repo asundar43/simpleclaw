@@ -26,6 +26,7 @@ type AgentEntry = NonNullable<NonNullable<SimpleClawConfig["agents"]>["list"]>[n
 
 type ResolvedAgentConfig = {
   name?: string;
+  role?: "orchestrator" | "worker";
   workspace?: string;
   agentDir?: string;
   model?: AgentEntry["model"];
@@ -123,8 +124,14 @@ export function resolveAgentConfig(
   if (!entry) {
     return undefined;
   }
+  const role =
+    (entry as Record<string, unknown>).role === "orchestrator" ||
+    (entry as Record<string, unknown>).role === "worker"
+      ? ((entry as Record<string, unknown>).role as "orchestrator" | "worker")
+      : undefined;
   return {
     name: typeof entry.name === "string" ? entry.name : undefined,
+    role,
     workspace: typeof entry.workspace === "string" ? entry.workspace : undefined,
     agentDir: typeof entry.agentDir === "string" ? entry.agentDir : undefined,
     model:

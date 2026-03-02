@@ -533,7 +533,7 @@ describe("subagent announce formatting", () => {
     expect(call?.params?.to).toBe("channel:12345");
     expect(msg).toContain("There are still 1 active subagent run for this session.");
     expect(msg).toContain(
-      "If they are part of the same workflow, wait for the remaining results before sending a user update.",
+      "If they are part of the same workflow, use the `wait` tool to hold for remaining results instead of replying now.",
     );
   });
 
@@ -1537,7 +1537,7 @@ describe("subagent announce formatting", () => {
     const msg = call?.params?.message as string;
     expect(msg).toContain("There are still 2 active subagent runs for this session.");
     expect(msg).toContain(
-      "If they are part of the same workflow, wait for the remaining results before sending a user update.",
+      "If they are part of the same workflow, use the `wait` tool to hold for remaining results instead of replying now.",
     );
     expect(msg).toContain("If they are unrelated, respond normally using only the result above.");
   });

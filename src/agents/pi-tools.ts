@@ -23,6 +23,7 @@ import {
 import { listChannelAgentTools } from "./channel-tools.js";
 import { resolveImageSanitizationLimits } from "./image-sanitization.js";
 import type { ModelAuthMode } from "./model-auth.js";
+import { resolveAgentRole, resolveRoleToolPolicy } from "./orchestrator-role.js";
 import { wrapToolWithAbortSignal } from "./pi-tools.abort.js";
 import { wrapToolWithBeforeToolCallHook } from "./pi-tools.before-tool-call.js";
 import {
@@ -269,6 +270,9 @@ export function createSimpleClawCodingTools(options?: {
           getSubagentDepthFromSessionStore(options.sessionKey, { cfg: options.config }),
         )
       : undefined;
+  const agentRole =
+    options?.config && agentId ? resolveAgentRole(options.config, agentId) : undefined;
+  const rolePolicy = resolveRoleToolPolicy(agentRole);
   const allowBackground = isToolAllowedByPolicies("process", [
     profilePolicyWithAlsoAllow,
     providerProfilePolicyWithAlsoAllow,
@@ -502,6 +506,7 @@ export function createSimpleClawCodingTools(options?: {
       }),
       { policy: sandbox?.tools, label: "sandbox tools.allow" },
       { policy: subagentPolicy, label: "subagent tools.allow" },
+      { policy: rolePolicy, label: agentRole ? `agent role (${agentRole})` : "agent role" },
     ],
   });
   // Always normalize tool JSON Schemas before handing them to pi-agent/pi-ai.

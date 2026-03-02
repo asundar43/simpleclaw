@@ -17,6 +17,10 @@ const SessionsSpawnToolSchema = Type.Object({
   thread: Type.Optional(Type.Boolean()),
   mode: optionalStringEnum(SUBAGENT_SPAWN_MODES),
   cleanup: optionalStringEnum(["delete", "keep"] as const),
+  /** Batch ID for coordinated fan-out. Use createBatch action first to get a batchId. */
+  batchId: Type.Optional(Type.String()),
+  /** Named agent — reuses a persistent session for conversation continuity. Same name = same session. */
+  name: Type.Optional(Type.String()),
 });
 
 export function createSessionsSpawnTool(opts?: {
@@ -36,7 +40,7 @@ export function createSessionsSpawnTool(opts?: {
     label: "Sessions",
     name: "sessions_spawn",
     description:
-      'Spawn a sub-agent in an isolated session (mode="run" one-shot or mode="session" persistent) and route results back to the requester chat/thread.',
+      'Spawn a sub-agent in an isolated session (mode="run" one-shot or mode="session" persistent) and route results back to the requester chat/thread. For coordinated parallel tasks, create a batch first with the subagents tool (action="createBatch") and pass the batchId — results will be aggregated and delivered as a single message when all runs complete. Use "name" for persistent named agents with conversation continuity (same name = same session).',
     parameters: SessionsSpawnToolSchema,
     execute: async (_toolCallId, args) => {
       const params = args as Record<string, unknown>;
@@ -60,6 +64,8 @@ export function createSessionsSpawnTool(opts?: {
           ? Math.max(0, Math.floor(timeoutSecondsCandidate))
           : undefined;
       const thread = params.thread === true;
+      const batchId = readStringParam(params, "batchId");
+      const name = readStringParam(params, "name");
 
       const result = await spawnSubagentDirect(
         {
@@ -73,6 +79,8 @@ export function createSessionsSpawnTool(opts?: {
           mode,
           cleanup,
           expectsCompletionMessage: true,
+          batchId: batchId || undefined,
+          name: name || undefined,
         },
         {
           agentSessionKey: opts?.agentSessionKey,

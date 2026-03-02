@@ -9,6 +9,8 @@ export type AgentConfig = {
   id: string;
   default?: boolean;
   name?: string;
+  /** Agent role: orchestrator (delegation tools + roster) or worker (no delegation). */
+  role?: "orchestrator" | "worker";
   workspace?: string;
   agentDir?: string;
   model?: AgentModelConfig;

@@ -10,8 +10,15 @@ import { resolveAgentConfig } from "./agent-scope.js";
 import { AGENT_LANE_SUBAGENT } from "./lanes.js";
 import { resolveSubagentSpawnModelSelection } from "./model-selection.js";
 import { buildSubagentSystemPrompt } from "./subagent-announce.js";
+import { addRunToBatch } from "./subagent-batch.js";
 import { getSubagentDepthFromSessionStore } from "./subagent-depth.js";
 import { countActiveRunsForSession, registerSubagentRun } from "./subagent-registry.js";
+import {
+  countRosterEntries,
+  lookupNamedAgent,
+  markNamedAgentRunning,
+  registerNamedAgent,
+} from "./subagent-roster.js";
 import { readStringParam } from "./tools/common.js";
 import {
   resolveDisplaySessionKey,
@@ -33,6 +40,10 @@ export type SpawnSubagentParams = {
   mode?: SpawnSubagentMode;
   cleanup?: "delete" | "keep";
   expectsCompletionMessage?: boolean;
+  /** Batch ID — when set, this run is part of a coordinated fan-out batch. */
+  batchId?: string;
+  /** Named agent — reuses persistent session for conversation continuity. */
+  name?: string;
 };
 
 export type SpawnSubagentContext = {
@@ -60,6 +71,9 @@ export type SpawnSubagentResult = {
   note?: string;
   modelApplied?: boolean;
   error?: string;
+  batchId?: string;
+  /** Named agent roster name (echoed back on success). */
+  name?: string;
 };
 
 export function splitModelRef(ref?: string) {
@@ -169,18 +183,22 @@ export async function spawnSubagentDirect(
   const modelOverride = params.model;
   const thinkingOverrideRaw = params.thinking;
   const requestThreadBinding = params.thread === true;
-  const spawnMode = resolveSpawnMode({
-    requestedMode: params.mode,
-    threadRequested: requestThreadBinding,
-  });
-  if (spawnMode === "session" && !requestThreadBinding) {
+  const namedAgent = params.name?.trim() || undefined;
+  // Named agents always use persistent sessions.
+  const spawnMode = namedAgent
+    ? "session"
+    : resolveSpawnMode({
+        requestedMode: params.mode,
+        threadRequested: requestThreadBinding,
+      });
+  if (spawnMode === "session" && !requestThreadBinding && !namedAgent) {
     return {
       status: "error",
       error: 'mode="session" requires thread=true so the subagent can stay bound to a thread.',
     };
   }
   const cleanup =
-    spawnMode === "session"
+    namedAgent || spawnMode === "session"
       ? "keep"
       : params.cleanup === "keep" || params.cleanup === "delete"
         ? params.cleanup
@@ -264,7 +282,35 @@ export async function spawnSubagentDirect(
       };
     }
   }
-  const childSessionKey = `agent:${targetAgentId}:subagent:${crypto.randomUUID()}`;
+  // Named agent roster: reuse existing session or create new entry.
+  let rosterReuse = false;
+  let childSessionKey: string;
+  if (namedAgent) {
+    const existing = lookupNamedAgent(requesterInternalKey, namedAgent);
+    if (existing) {
+      if (existing.status === "running") {
+        return {
+          status: "error",
+          error: `Named agent "${namedAgent}" is already running (runId: ${existing.currentRunId}). Wait for it to finish or kill it first.`,
+        };
+      }
+      childSessionKey = existing.sessionKey;
+      rosterReuse = true;
+    } else {
+      // Check roster capacity for new entries.
+      const rosterMax = cfg.agents?.defaults?.subagents?.rosterMaxAgents ?? 10;
+      const rosterCount = countRosterEntries(requesterInternalKey);
+      if (rosterCount >= rosterMax) {
+        return {
+          status: "forbidden",
+          error: `Named agent roster is full (${rosterCount}/${rosterMax}). Retire unused agents first.`,
+        };
+      }
+      childSessionKey = `agent:${targetAgentId}:subagent:${crypto.randomUUID()}`;
+    }
+  } else {
+    childSessionKey = `agent:${targetAgentId}:subagent:${crypto.randomUUID()}`;
+  }
   const childDepth = callerDepth + 1;
   const spawnedByKey = requesterInternalKey;
   const targetAgentConfig = resolveAgentConfig(cfg, targetAgentId);
@@ -493,7 +539,29 @@ export async function spawnSubagentDirect(
     runTimeoutSeconds,
     expectsCompletionMessage,
     spawnMode,
+    batchId: params.batchId,
   });
+
+  // Register this run in the batch manager for fan-out/fan-in coordination.
+  if (params.batchId) {
+    addRunToBatch(params.batchId, childRunId);
+  }
+
+  // Named agent roster: register new entry or mark existing as running.
+  if (namedAgent) {
+    if (rosterReuse) {
+      markNamedAgentRunning(requesterInternalKey, namedAgent, childRunId);
+    } else {
+      registerNamedAgent({
+        name: namedAgent,
+        agentId: targetAgentId,
+        sessionKey: childSessionKey,
+        requesterSessionKey: requesterInternalKey,
+        model: resolvedModel,
+        runId: childRunId,
+      });
+    }
+  }
 
   if (hookRunner?.hasHooks("subagent_spawned")) {
     try {
@@ -531,5 +599,7 @@ export async function spawnSubagentDirect(
     note:
       spawnMode === "session" ? SUBAGENT_SPAWN_SESSION_ACCEPTED_NOTE : SUBAGENT_SPAWN_ACCEPTED_NOTE,
     modelApplied: resolvedModel ? modelApplied : undefined,
+    batchId: params.batchId,
+    name: namedAgent,
   };
 }

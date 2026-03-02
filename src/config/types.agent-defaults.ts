@@ -251,6 +251,12 @@ export type AgentDefaultsConfig = {
     runTimeoutSeconds?: number;
     /** Gateway timeout in ms for sub-agent announce delivery calls (default: 60000). */
     announceTimeoutMs?: number;
+    /** When true, batched spawns suppress individual announces and deliver aggregated results (default: true). */
+    batchAutoAggregate?: boolean;
+    /** Timeout in ms for batch completion — partial results are force-aggregated after this (default: no timeout). */
+    batchTimeoutMs?: number;
+    /** Maximum named agents per requester in the roster (default: 10). */
+    rosterMaxAgents?: number;
   };
   /** Optional sandbox settings for non-main sessions. */
   sandbox?: AgentSandboxConfig;

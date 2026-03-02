@@ -20,6 +20,7 @@ import { createSessionsSendTool } from "./tools/sessions-send-tool.js";
 import { createSessionsSpawnTool } from "./tools/sessions-spawn-tool.js";
 import { createSubagentsTool } from "./tools/subagents-tool.js";
 import { createTtsTool } from "./tools/tts-tool.js";
+import { createWaitTool } from "./tools/wait-tool.js";
 import { createWebFetchTool, createWebSearchTool } from "./tools/web-tools.js";
 import { resolveWorkspaceRoot } from "./workspace-dir.js";
 
@@ -162,6 +163,7 @@ export function createSimpleClawTools(options?: {
     createSubagentsTool({
       agentSessionKey: options?.agentSessionKey,
     }),
+    createWaitTool(),
     createSessionStatusTool({
       agentSessionKey: options?.agentSessionKey,
       config: options?.config,

@@ -28,6 +28,7 @@ import { INTERNAL_MESSAGE_CHANNEL } from "../../utils/message-channel.js";
 import { AGENT_LANE_SUBAGENT } from "../lanes.js";
 import { abortEmbeddedPiRun } from "../pi-embedded.js";
 import { optionalStringEnum } from "../schema/typebox.js";
+import { createBatch, listBatches } from "../subagent-batch.js";
 import { getSubagentDepthFromSessionStore } from "../subagent-depth.js";
 import {
   clearSubagentRunSteerRestart,
@@ -37,11 +38,20 @@ import {
   replaceSubagentRunAfterSteer,
   type SubagentRunRecord,
 } from "../subagent-registry.js";
+import { getRosterNameForSession, listRoster, retireNamedAgent } from "../subagent-roster.js";
 import type { AnyAgentTool } from "./common.js";
 import { jsonResult, readNumberParam, readStringParam } from "./common.js";
 import { resolveInternalSessionKey, resolveMainSessionAlias } from "./sessions-helpers.js";
 
-const SUBAGENT_ACTIONS = ["list", "kill", "steer"] as const;
+const SUBAGENT_ACTIONS = [
+  "list",
+  "kill",
+  "steer",
+  "createBatch",
+  "batches",
+  "roster",
+  "retire",
+] as const;
 type SubagentAction = (typeof SUBAGENT_ACTIONS)[number];
 
 const DEFAULT_RECENT_MINUTES = 30;
@@ -57,6 +67,10 @@ const SubagentsToolSchema = Type.Object({
   target: Type.Optional(Type.String()),
   message: Type.Optional(Type.String()),
   recentMinutes: Type.Optional(Type.Number({ minimum: 1 })),
+  /** Label for a new batch (used with createBatch action). */
+  batchLabel: Type.Optional(Type.String()),
+  /** Named agent name (used with retire action). */
+  name: Type.Optional(Type.String()),
 });
 
 type SessionEntryResolution = {
@@ -344,7 +358,7 @@ export function createSubagentsTool(opts?: { agentSessionKey?: string }): AnyAge
     label: "Subagents",
     name: "subagents",
     description:
-      "List, kill, or steer spawned sub-agents for this requester session. Use this for sub-agent orchestration.",
+      'List, kill, or steer spawned sub-agents for this requester session. Use this for sub-agent orchestration. Use action="createBatch" to get a batchId for coordinated parallel spawns (results are aggregated). Use action="batches" to list active batches. Use action="roster" to list named agents. Use action="retire" with name to remove a named agent.',
     parameters: SubagentsToolSchema,
     execute: async (_toolCallId, args) => {
       const params = args as Record<string, unknown>;
@@ -377,13 +391,16 @@ export function createSubagentsTool(opts?: { agentSessionKey?: string }): AnyAge
           const status = resolveRunStatus(entry);
           const runtime = formatDurationCompact(runtimeMs);
           const label = truncateLine(resolveSubagentLabel(entry), 48);
+          const rosterName = getRosterNameForSession(entry.childSessionKey);
           const task = truncateLine(entry.task.trim(), 72);
-          const line = `${index}. ${label} (${resolveModelDisplay(sessionEntry, entry.model)}, ${runtime}${usageText ? `, ${usageText}` : ""}) ${status}${task.toLowerCase() !== label.toLowerCase() ? ` - ${task}` : ""}`;
+          const nameTag = rosterName ? ` [${rosterName}]` : "";
+          const line = `${index}. ${label}${nameTag} (${resolveModelDisplay(sessionEntry, entry.model)}, ${runtime}${usageText ? `, ${usageText}` : ""}) ${status}${task.toLowerCase() !== label.toLowerCase() ? ` - ${task}` : ""}`;
           const baseView = {
             index,
             runId: entry.runId,
             sessionKey: entry.childSessionKey,
             label,
+            rosterName,
             task,
             status,
             runtime,
@@ -671,6 +688,69 @@ export function createSubagentsTool(opts?: { agentSessionKey?: string }): AnyAge
           text: `steered ${resolveSubagentLabel(resolved.entry)}.`,
         });
       }
+      if (action === "createBatch") {
+        const batchLabel = readStringParam(params, "batchLabel");
+        const batchId = createBatch({
+          requesterSessionKey: requester.requesterSessionKey,
+          label: batchLabel || undefined,
+          autoAggregate: true,
+        });
+        return jsonResult({
+          status: "ok",
+          action: "createBatch",
+          batchId,
+          label: batchLabel || undefined,
+          text: `Batch created (id: ${batchId.slice(0, 8)}). Pass this batchId to sessions_spawn for each parallel task. Results will be aggregated into a single message when all runs complete.`,
+        });
+      }
+
+      if (action === "batches") {
+        const activeBatches = listBatches(requester.requesterSessionKey);
+        const lines = activeBatches.map((b) => {
+          const label = b.label || b.batchId.slice(0, 8);
+          return `- ${label}: ${b.completedRunIds.length}/${b.runIds.length} complete, ${b.pendingCount} pending`;
+        });
+        return jsonResult({
+          status: "ok",
+          action: "batches",
+          batches: activeBatches,
+          text:
+            activeBatches.length > 0
+              ? `Active batches:\n${lines.join("\n")}`
+              : "No active batches.",
+        });
+      }
+
+      if (action === "roster") {
+        const entries = listRoster(requester.requesterSessionKey);
+        const lines = entries.map((e) => {
+          const statusTag = e.status === "running" ? "running" : "idle";
+          return `- ${e.name} (${e.agentId}, ${statusTag})`;
+        });
+        return jsonResult({
+          status: "ok",
+          action: "roster",
+          entries,
+          text:
+            entries.length > 0
+              ? `Named agents:\n${lines.join("\n")}`
+              : "No named agents in roster.",
+        });
+      }
+
+      if (action === "retire") {
+        const name = readStringParam(params, "name", { required: true });
+        const removed = retireNamedAgent(requester.requesterSessionKey, name);
+        return jsonResult({
+          status: removed ? "ok" : "error",
+          action: "retire",
+          name,
+          text: removed
+            ? `Retired named agent "${name}" from roster.`
+            : `Named agent "${name}" not found in roster.`,
+        });
+      }
+
       return jsonResult({
         status: "error",
         error: "Unsupported action.",

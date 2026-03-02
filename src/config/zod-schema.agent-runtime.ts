@@ -674,6 +674,12 @@ export const AgentEntrySchema = z
     id: z.string(),
     default: z.boolean().optional(),
     name: z.string().optional(),
+    role: z
+      .union([z.literal("orchestrator"), z.literal("worker")])
+      .optional()
+      .describe(
+        "Agent role: orchestrator (gets delegation tools + roster/batch in system prompt) or worker (delegation tools denied).",
+      ),
     workspace: z.string().optional(),
     agentDir: z.string().optional(),
     model: AgentModelSchema.optional(),

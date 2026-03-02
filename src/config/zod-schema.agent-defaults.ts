@@ -148,6 +148,29 @@ export const AgentDefaultsSchema = z
         thinking: z.string().optional(),
         runTimeoutSeconds: z.number().int().min(0).optional(),
         announceTimeoutMs: z.number().int().positive().optional(),
+        batchAutoAggregate: z
+          .boolean()
+          .optional()
+          .describe(
+            "When true, coordinated parallel spawns (batches) suppress individual announces and deliver one aggregated result when all runs complete (default: true).",
+          ),
+        batchTimeoutMs: z
+          .number()
+          .int()
+          .positive()
+          .optional()
+          .describe(
+            "Timeout in ms for batch completion. If all runs don't finish within this window, partial results are force-aggregated (default: no timeout).",
+          ),
+        rosterMaxAgents: z
+          .number()
+          .int()
+          .min(1)
+          .max(50)
+          .optional()
+          .describe(
+            "Maximum number of named agents a single requester can have in the roster (default: 10).",
+          ),
       })
       .strict()
       .optional(),

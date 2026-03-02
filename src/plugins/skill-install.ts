@@ -109,8 +109,9 @@ export async function installSkillFromArchiveUrl(params: {
   const targetDir = path.join(managedSkillsDir, name);
   const url = resolveGcsUrl(archiveUrl);
 
-  // Create a temp directory for download + extraction
-  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), `simpleclaw-skill-${name}-`));
+  // Create a temp directory for download + extraction.
+  // Use a static prefix — name is only cosmetic here and mkdtemp appends random chars.
+  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "simpleclaw-skill-"));
 
   try {
     // Download the archive

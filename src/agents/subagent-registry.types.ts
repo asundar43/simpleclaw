@@ -32,4 +32,6 @@ export type SubagentRunRecord = {
   endedReason?: SubagentLifecycleEndedReason;
   /** Set after the subagent_ended hook has been emitted successfully once. */
   endedHookEmittedAt?: number;
+  /** Batch ID when this run is part of a coordinated fan-out batch. */
+  batchId?: string;
 };

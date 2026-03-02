@@ -34,6 +34,7 @@ import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../defaults.js";
 import { resolveSimpleClawDocsPath } from "../docs-path.js";
 import { getApiKeyForModel, resolveModelAuthMode } from "../model-auth.js";
 import { ensureSimpleClawModelsJson } from "../models-config.js";
+import { resolveAgentRole, buildOrchestratorSystemPromptSection } from "../orchestrator-role.js";
 import { resolveOwnerDisplaySetting } from "../owner-display.js";
 import {
   ensureSessionHeader,
@@ -483,11 +484,20 @@ export async function compactEmbeddedPiSessionDirect(
     });
     const ttsHint = params.config ? buildTtsSystemPromptHint(params.config) : undefined;
     const ownerDisplay = resolveOwnerDisplaySetting(params.config);
+    // Orchestrator role: inject roster/batch status into the system prompt.
+    const orchestratorSection = buildOrchestratorSystemPromptSection({
+      role: params.config ? resolveAgentRole(params.config, sessionAgentId) : undefined,
+      requesterSessionKey: params.sessionKey ?? params.sessionId,
+    });
+    const effectiveExtraSystemPrompt = orchestratorSection
+      ? [orchestratorSection, params.extraSystemPrompt].filter(Boolean).join("\n\n")
+      : params.extraSystemPrompt;
+
     const appendPrompt = buildEmbeddedSystemPrompt({
       workspaceDir: effectiveWorkspace,
       defaultThinkLevel: params.thinkLevel,
       reasoningLevel: params.reasoningLevel ?? "off",
-      extraSystemPrompt: params.extraSystemPrompt,
+      extraSystemPrompt: effectiveExtraSystemPrompt,
       ownerNumbers: params.ownerNumbers,
       ownerDisplay: ownerDisplay.ownerDisplay,
       ownerDisplaySecret: ownerDisplay.ownerDisplaySecret,
