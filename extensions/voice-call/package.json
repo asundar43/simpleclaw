@@ -1,6 +1,6 @@
 {
   "name": "@simpleclaw/voice-call",
-  "version": "2026.2.25",
+  "version": "2026.3.2",
   "description": "SimpleClaw voice-call plugin",
   "type": "module",
   "dependencies": {

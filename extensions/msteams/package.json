@@ -1,6 +1,6 @@
 {
   "name": "@simpleclaw/msteams",
-  "version": "2026.2.25",
+  "version": "2026.3.2",
   "description": "SimpleClaw Microsoft Teams channel plugin",
   "type": "module",
   "dependencies": {

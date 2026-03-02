@@ -1,6 +1,6 @@
 {
   "name": "@simpleclaw/telegram",
-  "version": "2026.2.25",
+  "version": "2026.3.2",
   "private": true,
   "description": "SimpleClaw Telegram channel plugin",
   "type": "module",

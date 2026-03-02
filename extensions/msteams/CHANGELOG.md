@@ -1,5 +1,11 @@
 # Changelog
 
+## 2026.3.2
+
+### Changes
+
+- Version alignment with core SimpleClaw release numbers.
+
 ## 2026.2.25
 
 ### Changes
