@@ -22,7 +22,9 @@ async function emitCredsUpdateAndReadSaveCreds() {
 }
 
 function mockCredsJsonSpies(readContents: string) {
-  const credsSuffix = path.join(".simpleclaw", "credentials", "whatsapp", "default", "creds.json");
+  // Omit the state dir name (.simpleclaw vs .openclaw) — it differs on Windows CI
+  // where the test setup sets OPENCLAW_STATE_DIR to use .openclaw.
+  const credsSuffix = path.join("credentials", "whatsapp", "default", "creds.json");
   const copySpy = vi.spyOn(fsSync, "copyFileSync").mockImplementation(() => {});
   const existsSpy = vi.spyOn(fsSync, "existsSync").mockImplementation((p) => {
     if (typeof p !== "string") {
@@ -206,13 +208,7 @@ describe("web session", () => {
 
   it("rotates creds backup when creds.json is valid JSON", async () => {
     const creds = mockCredsJsonSpies("{}");
-    const backupSuffix = path.join(
-      ".simpleclaw",
-      "credentials",
-      "whatsapp",
-      "default",
-      "creds.json.bak",
-    );
+    const backupSuffix = path.join("credentials", "whatsapp", "default", "creds.json.bak");
 
     await createWaSocket(false, false);
     const saveCreds = await emitCredsUpdateAndReadSaveCreds();

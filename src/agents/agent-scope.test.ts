@@ -421,8 +421,10 @@ describe("resolveAgentConfig", () => {
   it("uses SIMPLECLAW_HOME for default agentDir", () => {
     const home = path.join(path.sep, "srv", "simpleclaw-home");
     vi.stubEnv("SIMPLECLAW_HOME", home);
-    // Clear state dir so it falls back to SIMPLECLAW_HOME
+    // Clear state dir (including legacy) so it falls back to SIMPLECLAW_HOME
     vi.stubEnv("SIMPLECLAW_STATE_DIR", "");
+    vi.stubEnv("OPENCLAW_STATE_DIR", "");
+    vi.stubEnv("CLAWDBOT_STATE_DIR", "");
 
     const agentDir = resolveAgentDir({} as SimpleClawConfig, "main");
     expect(agentDir).toBe(path.join(path.resolve(home), ".simpleclaw", "agents", "main", "agent"));
