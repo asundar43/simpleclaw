@@ -10,6 +10,7 @@ import { createCanvasTool } from "./tools/canvas-tool.js";
 import type { AnyAgentTool } from "./tools/common.js";
 import { createCronTool } from "./tools/cron-tool.js";
 import { createGatewayTool } from "./tools/gateway-tool.js";
+import { createGenUiTool } from "./tools/genui-tool.js";
 import { createImageTool } from "./tools/image-tool.js";
 import { createMessageTool } from "./tools/message-tool.js";
 import { createNodesTool } from "./tools/nodes-tool.js";
@@ -115,6 +116,7 @@ export function createSimpleClawTools(options?: {
       allowHostControl: options?.allowHostBrowserControl,
     }),
     createCanvasTool({ config: options?.config }),
+    createGenUiTool({ config: options?.config, agentSessionKey: options?.agentSessionKey }),
     createNodesTool({
       agentSessionKey: options?.agentSessionKey,
       config: options?.config,
@@ -163,7 +165,10 @@ export function createSimpleClawTools(options?: {
     createSubagentsTool({
       agentSessionKey: options?.agentSessionKey,
     }),
-    createWaitTool(),
+    createWaitTool({
+      agentSessionKey: options?.agentSessionKey,
+      holdTimeoutMs: options?.config?.agents?.defaults?.subagents?.holdTimeoutMs,
+    }),
     createSessionStatusTool({
       agentSessionKey: options?.agentSessionKey,
       config: options?.config,

@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createJiti } from "jiti";
+import { registerJudgeHook } from "../agents/judge/judge-hook.js";
+import { registerPassiveContextHook } from "../agents/passive-context/passive-context-plugin.js";
 import type { SimpleClawConfig } from "../config/config.js";
 import type { GatewayRequestHandler } from "../gateway/server-methods/types.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
@@ -694,6 +696,15 @@ export function loadSimpleClawPlugins(options: PluginLoadOptions = {}): PluginRe
     registry,
     provenance,
     logger,
+  });
+
+  // Register built-in passive context hook (before_prompt_build)
+  registerPassiveContextHook(registry, cfg);
+
+  // Register built-in judge hooks (before_tool_call + after_tool_call)
+  // Fire-and-forget: async init runs in background (Firebase subscription, etc.)
+  registerJudgeHook(registry, cfg).catch((err) => {
+    logger?.warn?.(`judge hook registration failed: ${String(err)}`);
   });
 
   if (cacheEnabled) {

@@ -158,6 +158,12 @@ export type AgentDefaultsConfig = {
   contextPruning?: AgentContextPruningConfig;
   /** Compaction tuning and pre-compaction memory flush behavior. */
   compaction?: AgentCompactionConfig;
+  /** Proactive session summarization with temporal anchoring. */
+  proactiveSummary?: AgentProactiveSummaryConfig;
+  /** Passive context injection from connected services (Gmail, channel history). */
+  passiveContext?: AgentPassiveContextConfig;
+  /** Judge hook for generative UI rendering on connected frontends. */
+  judge?: AgentJudgeConfig;
   /** Vector memory search configuration (per-agent overrides supported). */
   memorySearch?: MemorySearchConfig;
   /** Default thinking level when no /think directive is present. */
@@ -257,6 +263,8 @@ export type AgentDefaultsConfig = {
     batchTimeoutMs?: number;
     /** Maximum named agents per requester in the roster (default: 10). */
     rosterMaxAgents?: number;
+    /** Timeout in ms for hold mode — held results are force-released after this (default: 300000 / 5 min). */
+    holdTimeoutMs?: number;
   };
   /** Optional sandbox settings for non-main sessions. */
   sandbox?: AgentSandboxConfig;
@@ -288,4 +296,76 @@ export type AgentCompactionMemoryFlushConfig = {
   prompt?: string;
   /** System prompt appended for the memory flush turn. */
   systemPrompt?: string;
+};
+
+export type AgentProactiveSummaryConfig = {
+  /** Enable proactive session summarization (default: false). */
+  enabled?: boolean;
+  /** Number of new messages since last summary before triggering (default: 100). */
+  messageThreshold?: number;
+  /** Max tokens for the generated summary (default: 2048). */
+  maxSummaryTokens?: number;
+  /** Include temporal anchors in summaries like "3 days ago" (default: true). */
+  temporalAnchoring?: boolean;
+};
+
+export type AgentPassiveContextConfig = {
+  /** Enable passive context injection from connected services (default: false). */
+  enabled?: boolean;
+  sources?: {
+    gmail?: {
+      enabled?: boolean;
+      /** Max tokens to budget for Gmail context (default: 2000). */
+      maxTokens?: number;
+      /** How many days back to search for relevant emails (default: 30). */
+      lookbackDays?: number;
+    };
+    channelHistory?: {
+      enabled?: boolean;
+      /** Max tokens to budget for channel history context (default: 1000). */
+      maxTokens?: number;
+    };
+  };
+  /** Total max tokens across all passive context sources (default: 3000). */
+  totalMaxTokens?: number;
+};
+
+export type AgentJudgeFirebaseConfig = {
+  /** Firebase RTDB URL (e.g. "https://project-id.firebaseio.com"). */
+  url: string;
+  /** RTDB path for GenUI component definitions (default: "genui-components"). */
+  collection?: string;
+};
+
+export type AgentJudgeLlmFallbackConfig = {
+  /** Enable LLM fallback for ambiguous tool→component mappings (default: false). */
+  enabled?: boolean;
+  /** Model to use for LLM judge calls (default: fast/cheap model). */
+  model?: string;
+};
+
+export type GenUiComponentDef = {
+  /** Unique component identifier used by the frontend to render the right UI. */
+  componentId: string;
+  /** Tool names that trigger this component. */
+  toolMappings: string[];
+  /** Parameters required to render this component — tool is blocked if any are missing. */
+  requiredParams: string[];
+  /** Optional parameters that enhance the component but aren't required. */
+  optionalParams?: string[];
+  /** JSON Schema describing the component's data shape. */
+  schema?: Record<string, unknown>;
+  /** Human-readable name for logging/debugging. */
+  displayName?: string;
+};
+
+export type AgentJudgeConfig = {
+  /** Enable the judge hook for GenUI rendering (default: false). */
+  enabled?: boolean;
+  /** Firebase RTDB connection for dynamic GenUI registry. */
+  firebase?: AgentJudgeFirebaseConfig;
+  /** LLM fallback for ambiguous tool→component selection. */
+  llmFallback?: AgentJudgeLlmFallbackConfig;
+  /** Static GenUI component registry (fallback when Firebase is not configured). */
+  registry?: Record<string, GenUiComponentDef>;
 };

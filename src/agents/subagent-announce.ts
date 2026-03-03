@@ -34,6 +34,10 @@ import {
 } from "./pi-embedded.js";
 import { type AnnounceQueueItem, enqueueAnnounce } from "./subagent-announce-queue.js";
 import { getSubagentDepthFromSessionStore } from "./subagent-depth.js";
+import {
+  bufferResult as bufferHeldResult,
+  isHolding as isHoldingResults,
+} from "./subagent-hold-buffer.js";
 import type { SpawnSubagentMode } from "./subagent-spawn.js";
 import { readLatestAssistantReply } from "./tools/agent-step.js";
 import { sanitizeTextContent, extractAssistantText } from "./tools/sessions-helpers.js";
@@ -1205,6 +1209,19 @@ export async function runSubagentAnnounceFlow(params: {
 
     if (!outcome) {
       outcome = { status: "unknown" };
+    }
+
+    // Hold mode: if the requester is buffering results, add to buffer instead of announcing
+    if (isHoldingResults(targetRequesterSessionKey)) {
+      bufferHeldResult(targetRequesterSessionKey, {
+        runId: params.childRunId,
+        label: params.label,
+        task: params.task,
+        findings: reply?.trim() || "(no output)",
+        status: outcome.status === "ok" ? "ok" : outcome.status === "error" ? "error" : "timeout",
+        endedAt: params.endedAt ?? Date.now(),
+      });
+      return true;
     }
 
     let requesterDepth = getSubagentDepthFromSessionStore(targetRequesterSessionKey);

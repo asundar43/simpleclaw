@@ -95,6 +95,10 @@ export type SessionEntry = {
   compactionCount?: number;
   memoryFlushAt?: number;
   memoryFlushCompactionCount?: number;
+  /** Timestamp of the last proactive session summary. */
+  lastProactiveSummaryAt?: number;
+  /** Message count at the time of the last proactive summary. */
+  lastProactiveSummaryMessageCount?: number;
   cliSessionIds?: Record<string, string>;
   claudeCliSessionId?: string;
   label?: string;

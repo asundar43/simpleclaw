@@ -22,7 +22,7 @@ export type SubagentRunRecord = {
   archiveAtMs?: number;
   cleanupCompletedAt?: number;
   cleanupHandled?: boolean;
-  suppressAnnounceReason?: "steer-restart" | "killed";
+  suppressAnnounceReason?: "steer-restart" | "killed" | "held";
   expectsCompletionMessage?: boolean;
   /** Number of announce delivery attempts that returned false (deferred). */
   announceRetryCount?: number;
