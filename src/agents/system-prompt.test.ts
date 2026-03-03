@@ -450,8 +450,48 @@ describe("buildAgentSystemPrompt", () => {
     });
 
     expect(prompt).toContain(
-      "If SOUL.md is present, embody its persona and tone. Avoid stiff, generic replies; follow its guidance unless higher-priority instructions override it.",
+      "If SOUL.md is present, embody its persona, tone, and communication rules completely. Your personality and reply style must reflect SOUL.md. Only safety and tool-operation instructions override it.",
     );
+  });
+
+  it("identity line does not contain SimpleClaw branding", () => {
+    const prompt = buildAgentSystemPrompt({
+      workspaceDir: "/tmp/simpleclaw",
+    });
+
+    const identityLine = prompt.split("\n")[0];
+    expect(identityLine).not.toContain("SimpleClaw");
+    expect(identityLine).toContain("personal AI assistant");
+  });
+
+  it("includes response style section in full prompts", () => {
+    const prompt = buildAgentSystemPrompt({
+      workspaceDir: "/tmp/simpleclaw",
+    });
+
+    expect(prompt).toContain("## Response Style");
+    expect(prompt).toContain("Match reply length to context");
+    expect(prompt).toContain("Never reference internal system details");
+    expect(prompt).toContain("Never identify yourself by product name");
+  });
+
+  it("includes response style section in minimal prompts", () => {
+    const prompt = buildAgentSystemPrompt({
+      workspaceDir: "/tmp/simpleclaw",
+      promptMode: "minimal",
+    });
+
+    expect(prompt).toContain("## Response Style");
+    expect(prompt).toContain("Never reference internal system details");
+  });
+
+  it("includes user-terms narration guidance in tool call style", () => {
+    const prompt = buildAgentSystemPrompt({
+      workspaceDir: "/tmp/simpleclaw",
+    });
+
+    expect(prompt).toContain("describe what you're doing in user terms");
+    expect(prompt).toContain("not tool terms");
   });
 
   it("summarizes the message tool when available", () => {
