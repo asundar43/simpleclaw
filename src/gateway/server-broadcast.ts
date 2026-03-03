@@ -5,6 +5,7 @@ import { logWs, shouldLogWs, summarizeAgentEventForWsLog } from "./ws-log.js";
 const ADMIN_SCOPE = "operator.admin";
 const APPROVALS_SCOPE = "operator.approvals";
 const PAIRING_SCOPE = "operator.pairing";
+const GENUI_SCOPE = "operator.genui";
 
 const EVENT_SCOPE_GUARDS: Record<string, string[]> = {
   "exec.approval.requested": [APPROVALS_SCOPE],
@@ -13,6 +14,8 @@ const EVENT_SCOPE_GUARDS: Record<string, string[]> = {
   "device.pair.resolved": [PAIRING_SCOPE],
   "node.pair.requested": [PAIRING_SCOPE],
   "node.pair.resolved": [PAIRING_SCOPE],
+  "genui.render": [GENUI_SCOPE],
+  "genui.update": [GENUI_SCOPE],
 };
 
 export type GatewayBroadcastStateVersion = {

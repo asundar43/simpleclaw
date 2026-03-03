@@ -1001,6 +1001,10 @@
                 ]
               },
               {
+                "group": "Generative UI",
+                "pages": ["tools/genui", "tools/genui-tool"]
+              },
+              {
                 "group": "Agent coordination",
                 "pages": ["tools/agent-send", "tools/subagents", "tools/multi-agent-sandbox-tools"]
               },

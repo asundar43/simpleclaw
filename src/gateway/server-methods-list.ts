@@ -120,5 +120,7 @@ export const GATEWAY_EVENTS = [
   "voicewake.changed",
   "exec.approval.requested",
   "exec.approval.resolved",
+  "genui.render",
+  "genui.update",
   GATEWAY_EVENT_UPDATE_AVAILABLE,
 ];

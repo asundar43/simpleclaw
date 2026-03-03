@@ -1,5 +1,6 @@
 import type { Server as HttpServer } from "node:http";
 import { WebSocketServer } from "ws";
+import { setGlobalGenUiBroadcast } from "../agents/judge/genui-broadcast.js";
 import { CANVAS_HOST_PATH } from "../canvas-host/a2ui.js";
 import { type CanvasHostHandler, createCanvasHostHandler } from "../canvas-host/server.js";
 import type { CliDeps } from "../cli/deps.js";
@@ -102,6 +103,9 @@ export async function createGatewayRuntimeState(params: {
 
   const clients = new Set<GatewayWsClient>();
   const { broadcast, broadcastToConnIds } = createGatewayBroadcaster({ clients });
+
+  // Make the broadcast function available to the judge hook for genui events
+  setGlobalGenUiBroadcast(broadcast);
 
   const handleHooksRequest = createGatewayHooksRequestHandler({
     deps: params.deps,
