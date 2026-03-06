@@ -160,6 +160,8 @@ export type AgentDefaultsConfig = {
   compaction?: AgentCompactionConfig;
   /** Proactive session summarization with temporal anchoring. */
   proactiveSummary?: AgentProactiveSummaryConfig;
+  /** Automatic user profile curation from conversations (USER.md). */
+  userProfileCuration?: AgentUserProfileCurationConfig;
   /** Passive context injection from connected services (Gmail, channel history). */
   passiveContext?: AgentPassiveContextConfig;
   /** Judge hook for generative UI rendering on connected frontends. */
@@ -307,6 +309,15 @@ export type AgentProactiveSummaryConfig = {
   maxSummaryTokens?: number;
   /** Include temporal anchors in summaries like "3 days ago" (default: true). */
   temporalAnchoring?: boolean;
+};
+
+export type AgentUserProfileCurationConfig = {
+  /** Enable automatic user profile curation from conversations (default: false). */
+  enabled?: boolean;
+  /** Number of new messages since last curation before triggering (default: 100). */
+  messageThreshold?: number;
+  /** Max conversation tokens to feed the curation prompt (default: 8000). */
+  maxConversationTokens?: number;
 };
 
 export type AgentPassiveContextConfig = {

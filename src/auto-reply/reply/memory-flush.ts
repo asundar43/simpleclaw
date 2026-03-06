@@ -12,7 +12,8 @@ export const DEFAULT_MEMORY_FLUSH_PROMPT = [
   "Pre-compaction memory flush.",
   "Store durable memories now (use memory/YYYY-MM-DD.md; create memory/ if needed).",
   "IMPORTANT: If the file already exists, APPEND new content only and do not overwrite existing entries.",
-  `If nothing to store, reply with ${SILENT_REPLY_TOKEN}.`,
+  "Also: if you learned anything new about the user (name, preferences, relationships, habits, projects, communication style), update USER.md with those facts — preserve existing content and merge new information.",
+  `If nothing to store and no profile updates needed, reply with ${SILENT_REPLY_TOKEN}.`,
 ].join(" ");
 
 export const DEFAULT_MEMORY_FLUSH_SYSTEM_PROMPT = [

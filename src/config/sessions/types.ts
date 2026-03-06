@@ -99,6 +99,10 @@ export type SessionEntry = {
   lastProactiveSummaryAt?: number;
   /** Message count at the time of the last proactive summary. */
   lastProactiveSummaryMessageCount?: number;
+  /** Timestamp of the last user profile curation run. */
+  lastUserProfileCurationAt?: number;
+  /** Message count at the time of the last user profile curation. */
+  lastUserProfileCurationMessageCount?: number;
   cliSessionIds?: Record<string, string>;
   claudeCliSessionId?: string;
   label?: string;

@@ -40,6 +40,7 @@ import {
 import { runMemoryFlushIfNeeded } from "./agent-runner-memory.js";
 import { buildReplyPayloads } from "./agent-runner-payloads.js";
 import { maybeRunProactiveSummary } from "./agent-runner-proactive-summary.js";
+import { maybeRunUserProfileCuration } from "./agent-runner-user-profile-curation.js";
 import { appendUsageLine, formatResponseUsageLine } from "./agent-runner-utils.js";
 import { createAudioAsVoiceBuffer, createBlockReplyPipeline } from "./block-reply-pipeline.js";
 import { resolveBlockStreamingCoalescing } from "./block-streaming.js";
@@ -509,6 +510,20 @@ export async function runReplyAgent(params: {
 
     // Proactive session summary (fire-and-forget background task)
     maybeRunProactiveSummary({
+      cfg,
+      sessionKey,
+      storePath,
+      sessionFile: followupRun.run.sessionFile,
+      sessionEntry: activeSessionEntry,
+      workspaceDir: process.cwd(),
+      agentId: sessionKey ? (resolveAgentIdFromSessionKey(sessionKey) ?? "main") : "main",
+      modelUsed,
+      providerUsed,
+      isHeartbeat,
+    });
+
+    // User profile curation (fire-and-forget background task)
+    maybeRunUserProfileCuration({
       cfg,
       sessionKey,
       storePath,
