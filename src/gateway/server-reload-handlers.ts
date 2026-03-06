@@ -4,8 +4,6 @@ import type { CliDeps } from "../cli/deps.js";
 import { resolveAgentMaxConcurrent, resolveSubagentMaxConcurrent } from "../config/agent-limits.js";
 import { isRestartEnabled } from "../config/commands.js";
 import type { loadConfig } from "../config/config.js";
-import { startGmailWatcherWithLogs } from "../hooks/gmail-watcher-lifecycle.js";
-import { stopGmailWatcher } from "../hooks/gmail-watcher.js";
 import { isTruthyEnvValue } from "../infra/env.js";
 import type { HeartbeatRunner } from "../infra/heartbeat-runner.js";
 import { resetDirectoryCache } from "../infra/outbound/target-resolver.js";
@@ -90,15 +88,7 @@ export function createGatewayReloadHandlers(params: {
       }
     }
 
-    if (plan.restartGmailWatcher) {
-      await stopGmailWatcher().catch(() => {});
-      await startGmailWatcherWithLogs({
-        cfg: nextConfig,
-        log: params.logHooks,
-        onSkipped: () =>
-          params.logHooks.info("skipping gmail watcher restart (SIMPLECLAW_SKIP_GMAIL_WATCHER=1)"),
-      });
-    }
+    // Gmail watcher removed — skill watchers handle email notifications now.
 
     if (plan.restartChannels.size > 0) {
       if (

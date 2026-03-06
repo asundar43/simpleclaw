@@ -2,7 +2,7 @@ import type { Skill } from "@mariozechner/pi-coding-agent";
 
 export type SkillInstallSpec = {
   id?: string;
-  kind: "brew" | "node" | "go" | "uv" | "download";
+  kind: "brew" | "node" | "go" | "uv" | "download" | "script";
   label?: string;
   bins?: string[];
   os?: string[];
@@ -14,6 +14,24 @@ export type SkillInstallSpec = {
   extract?: boolean;
   stripComponents?: number;
   targetDir?: string;
+  cmd?: string;
+};
+
+export type SkillWatchEntry = {
+  /** Unique ID for this watcher (e.g., "gws-gmail"). */
+  id: string;
+  /** Command + args to spawn (e.g., ["gws", "gmail", "+watch"]). Streams NDJSON on stdout. */
+  command: string[];
+  /** Hook path to route NDJSON events to (e.g., "gws-gmail"). */
+  hookPath: string;
+  /** Display name for logging/status. */
+  name: string;
+  /** Message template using {{field}} placeholders resolved from the NDJSON event payload. */
+  messageTemplate?: string;
+  /** Session key template for dedup (e.g., "hook:gws-gmail:{{messageId}}"). */
+  sessionKey?: string;
+  /** Optional env vars to pass to the subprocess. */
+  env?: Record<string, string>;
 };
 
 export type SimpleClawSkillMetadata = {
@@ -30,6 +48,8 @@ export type SimpleClawSkillMetadata = {
     config?: string[];
   };
   install?: SkillInstallSpec[];
+  /** Long-running watch commands that stream NDJSON events for proactive notifications. */
+  watch?: SkillWatchEntry[];
 };
 
 export type SkillInvocationPolicy = {
@@ -77,6 +97,7 @@ export type SkillEligibilityContext = {
     hasAnyBin: (bins: string[]) => boolean;
     note?: string;
   };
+  hasConnection?: (provider: string) => boolean;
 };
 
 export type SkillSnapshot = {

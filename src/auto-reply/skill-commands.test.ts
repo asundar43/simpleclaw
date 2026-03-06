@@ -10,6 +10,7 @@ vi.mock("./commands-registry.js", () => ({
 
 vi.mock("../infra/skills-remote.js", () => ({
   getRemoteSkillEligibility: () => ({}),
+  getSkillEligibilityContext: () => ({}),
 }));
 
 // Avoid filesystem-driven skill scanning for these unit tests; we only need command naming semantics.

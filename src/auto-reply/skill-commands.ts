@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { listAgentIds, resolveAgentWorkspaceDir } from "../agents/agent-scope.js";
 import { buildWorkspaceSkillCommandSpecs, type SkillCommandSpec } from "../agents/skills.js";
 import type { SimpleClawConfig } from "../config/config.js";
-import { getRemoteSkillEligibility } from "../infra/skills-remote.js";
+import { getSkillEligibilityContext } from "../infra/skills-remote.js";
 import { listChatCommands } from "./commands-registry.js";
 
 export function listReservedChatSlashCommandNames(extraNames: string[] = []): Set<string> {
@@ -36,7 +36,7 @@ export function listSkillCommandsForWorkspace(params: {
   return buildWorkspaceSkillCommandSpecs(params.workspaceDir, {
     config: params.cfg,
     skillFilter: params.skillFilter,
-    eligibility: { remote: getRemoteSkillEligibility() },
+    eligibility: getSkillEligibilityContext(),
     reservedNames: listReservedChatSlashCommandNames(),
   });
 }
@@ -64,7 +64,7 @@ export function listSkillCommandsForAgents(params: {
     visitedDirs.add(canonicalDir);
     const commands = buildWorkspaceSkillCommandSpecs(workspaceDir, {
       config: params.cfg,
-      eligibility: { remote: getRemoteSkillEligibility() },
+      eligibility: getSkillEligibilityContext(),
       reservedNames: used,
     });
     for (const command of commands) {

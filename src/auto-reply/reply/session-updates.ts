@@ -10,7 +10,7 @@ import {
   formatUtcTimestamp,
   formatZonedTimestamp,
 } from "../../infra/format-time/format-datetime.ts";
-import { getRemoteSkillEligibility } from "../../infra/skills-remote.js";
+import { getSkillEligibilityContext } from "../../infra/skills-remote.js";
 import { drainSystemEventEntries } from "../../infra/system-events.js";
 
 export async function prependSystemEvents(params: {
@@ -151,7 +151,7 @@ export async function ensureSkillSnapshot(params: {
 
   let nextEntry = sessionEntry;
   let systemSent = sessionEntry?.systemSent ?? false;
-  const remoteEligibility = getRemoteSkillEligibility();
+  const skillEligibility = getSkillEligibilityContext();
   const snapshotVersion = getSkillsSnapshotVersion(workspaceDir);
   ensureSkillsWatcher({ workspaceDir, config: cfg });
   const shouldRefreshSnapshot =
@@ -168,7 +168,7 @@ export async function ensureSkillSnapshot(params: {
         ? buildWorkspaceSkillSnapshot(workspaceDir, {
             config: cfg,
             skillFilter,
-            eligibility: { remote: remoteEligibility },
+            eligibility: skillEligibility,
             snapshotVersion,
           })
         : current.skillsSnapshot;
@@ -192,7 +192,7 @@ export async function ensureSkillSnapshot(params: {
     ? buildWorkspaceSkillSnapshot(workspaceDir, {
         config: cfg,
         skillFilter,
-        eligibility: { remote: remoteEligibility },
+        eligibility: skillEligibility,
         snapshotVersion,
       })
     : (nextEntry?.skillsSnapshot ??
@@ -201,7 +201,7 @@ export async function ensureSkillSnapshot(params: {
         : buildWorkspaceSkillSnapshot(workspaceDir, {
             config: cfg,
             skillFilter,
-            eligibility: { remote: remoteEligibility },
+            eligibility: skillEligibility,
             snapshotVersion,
           })));
   if (

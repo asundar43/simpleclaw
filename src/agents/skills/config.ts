@@ -98,5 +98,6 @@ export function shouldIncludeSkill(params: {
         (skillConfig?.apiKey && entry.metadata?.primaryEnv === envName),
       ),
     isConfigPathTruthy: (configPath) => isConfigPathTruthy(config, configPath),
+    hasConnection: eligibility?.hasConnection,
   });
 }

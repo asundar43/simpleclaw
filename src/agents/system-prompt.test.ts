@@ -417,10 +417,10 @@ describe("buildAgentSystemPrompt", () => {
     });
 
     expect(prompt).toContain("# Project Context");
-    expect(prompt).toContain("## AGENTS.md");
     expect(prompt).toContain("Alpha");
-    expect(prompt).toContain("## IDENTITY.md");
     expect(prompt).toContain("Bravo");
+    expect(prompt).not.toContain("## AGENTS.md");
+    expect(prompt).not.toContain("## IDENTITY.md");
   });
 
   it("ignores context files with missing or blank paths", () => {
@@ -434,7 +434,6 @@ describe("buildAgentSystemPrompt", () => {
     });
 
     expect(prompt).toContain("# Project Context");
-    expect(prompt).toContain("## AGENTS.md");
     expect(prompt).toContain("Alpha");
     expect(prompt).not.toContain("Missing path");
     expect(prompt).not.toContain("Blank path");

@@ -1,3 +1,5 @@
+import { listProfilesForProvider } from "../agents/auth-profiles/profiles.js";
+import { ensureAuthProfileStore } from "../agents/auth-profiles/store.js";
 import type { SkillEligibilityContext, SkillEntry } from "../agents/skills.js";
 import { loadWorkspaceSkillEntries } from "../agents/skills.js";
 import { bumpSkillsSnapshotVersion } from "../agents/skills/refresh.js";
@@ -331,6 +333,24 @@ export function getRemoteSkillEligibility(): SkillEligibilityContext["remote"] |
     hasBin: (bin) => bins.has(bin),
     hasAnyBin: (required) => required.some((bin) => bins.has(bin)),
     note,
+  };
+}
+
+/**
+ * Build a full SkillEligibilityContext with remote eligibility and
+ * connection checking via the auth profile store.
+ */
+export function getSkillEligibilityContext(agentDir?: string): SkillEligibilityContext {
+  return {
+    remote: getRemoteSkillEligibility(),
+    hasConnection: (provider) => {
+      try {
+        const store = ensureAuthProfileStore(agentDir);
+        return listProfilesForProvider(store, provider).length > 0;
+      } catch {
+        return false;
+      }
+    },
   };
 }
 

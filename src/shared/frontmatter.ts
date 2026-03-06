@@ -64,6 +64,7 @@ export type SimpleClawManifestRequires = {
   anyBins: string[];
   env: string[];
   config: string[];
+  connections: string[];
 };
 
 export function resolveSimpleClawManifestRequires(
@@ -81,6 +82,7 @@ export function resolveSimpleClawManifestRequires(
     anyBins: normalizeStringList(requiresRaw.anyBins),
     env: normalizeStringList(requiresRaw.env),
     config: normalizeStringList(requiresRaw.config),
+    connections: normalizeStringList(requiresRaw.connections),
   };
 }
 

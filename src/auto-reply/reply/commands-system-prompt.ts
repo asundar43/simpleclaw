@@ -11,7 +11,7 @@ import { buildSystemPromptParams } from "../../agents/system-prompt-params.js";
 import { buildAgentSystemPrompt } from "../../agents/system-prompt.js";
 import { buildToolSummaryMap } from "../../agents/tool-summaries.js";
 import type { WorkspaceBootstrapFile } from "../../agents/workspace.js";
-import { getRemoteSkillEligibility } from "../../infra/skills-remote.js";
+import { getSkillEligibilityContext } from "../../infra/skills-remote.js";
 import { buildTtsSystemPromptHint } from "../../tts/tts.js";
 import type { HandleCommandsParams } from "./commands-types.js";
 
@@ -38,7 +38,7 @@ export async function resolveCommandsSystemPromptBundle(
     try {
       return buildWorkspaceSkillSnapshot(workspaceDir, {
         config: params.cfg,
-        eligibility: { remote: getRemoteSkillEligibility() },
+        eligibility: getSkillEligibilityContext(),
         snapshotVersion: getSkillsSnapshotVersion(workspaceDir),
       });
     } catch {

@@ -135,6 +135,7 @@ vi.mock("../../infra/outbound/deliver.js", () => ({
 
 vi.mock("../../infra/skills-remote.js", () => ({
   getRemoteSkillEligibility: vi.fn().mockReturnValue({}),
+  getSkillEligibilityContext: vi.fn().mockReturnValue({}),
 }));
 
 vi.mock("../../logger.js", () => ({

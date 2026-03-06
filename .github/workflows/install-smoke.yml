@@ -58,8 +58,6 @@ jobs:
       - name: Configure npm for GAR
         run: |
           TOKEN=$(gcloud auth print-access-token)
-          GAR_REGISTRY="https://${GAR_REGION}-npm.pkg.dev/${GAR_PROJECT}/${GAR_REPO}"
-          npm config set "registry" "$GAR_REGISTRY"
           npm config set "//${GAR_REGION}-npm.pkg.dev/${GAR_PROJECT}/${GAR_REPO}/:_authToken" "$TOKEN"
 
       - name: Verify package is viewable on GAR

@@ -668,17 +668,31 @@ export async function startGatewayServer(
 
   let browserControl: Awaited<ReturnType<typeof startBrowserControlServerIfEnabled>> = null;
   if (!minimalTestGateway) {
-    ({ browserControl, pluginServices } = await startGatewaySidecars({
+    const sidecarResult = await startGatewaySidecars({
       cfg: cfgAtStart,
       pluginRegistry,
       defaultWorkspaceDir,
       deps,
       startChannels,
+      skillWatcherHookConfig: hooksConfig
+        ? {
+            port,
+            hooksBasePath: hooksConfig.basePath,
+            token: hooksConfig.token,
+          }
+        : undefined,
       log,
       logHooks,
       logChannels,
       logBrowser,
-    }));
+    });
+    browserControl = sidecarResult.browserControl;
+    pluginServices = sidecarResult.pluginServices;
+
+    // Append skill-watcher-derived hook mappings so NDJSON events get routed.
+    if (hooksConfig && sidecarResult.skillWatchMappings.length > 0) {
+      hooksConfig.mappings.push(...sidecarResult.skillWatchMappings);
+    }
   }
 
   // Run gateway_start plugin hook (fire-and-forget)

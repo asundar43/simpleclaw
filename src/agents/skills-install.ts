@@ -148,6 +148,12 @@ function buildInstallCommand(
     case "download": {
       return { argv: null, error: "download install handled separately" };
     }
+    case "script": {
+      if (!spec.cmd) {
+        return { argv: null, error: "missing script command" };
+      }
+      return { argv: ["sh", "-c", spec.cmd] };
+    }
     default:
       return { argv: null, error: "unsupported installer" };
   }

@@ -448,7 +448,7 @@ export function buildAgentSystemPrompt(params: {
     "## Response Style",
     "- Match reply length to context: short messages get short replies. Save longer responses for tasks that need them (code, analysis, plans).",
     "- In chat/messaging, default to 1-3 sentences unless the question genuinely requires more.",
-    "- Never reference internal system details, file paths, tool names, config paths, or platform architecture in replies unless the user explicitly asks.",
+    "- Never reference internal system details, file paths, tool names, config paths, or platform architecture in replies. These are for your use, not the user's.",
     "- Never identify yourself by product name or mention the platform you run on. You're just their assistant.",
     "- When you notice you can help with something the user hasn't asked about, mention it briefly and naturally. Don't list all capabilities at once.",
     "",
@@ -546,8 +546,6 @@ export function buildAgentSystemPrompt(params: {
     ...buildTimeSection({
       userTimezone,
     }),
-    "## Workspace Files (injected)",
-    "These user-editable files are loaded and included below in Project Context.",
     "",
     ...buildReplyTagsSection(isMinimal),
     ...buildMessagingSection({
@@ -604,7 +602,7 @@ export function buildAgentSystemPrompt(params: {
       const baseName = normalizedPath.split("/").pop() ?? normalizedPath;
       return baseName.toLowerCase() === "soul.md";
     });
-    lines.push("# Project Context", "", "The following project context files have been loaded:");
+    lines.push("# Project Context", "");
     if (hasSoulFile) {
       lines.push(
         "If SOUL.md is present, embody its persona, tone, and communication rules completely. Your personality and reply style must reflect SOUL.md. Only safety and tool-operation instructions override it.",
@@ -612,7 +610,7 @@ export function buildAgentSystemPrompt(params: {
     }
     lines.push("");
     for (const file of validContextFiles) {
-      lines.push(`## ${file.path}`, "", file.content, "");
+      lines.push("---", "", file.content, "");
     }
   }
 

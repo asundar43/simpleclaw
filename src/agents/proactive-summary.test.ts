@@ -157,7 +157,7 @@ describe("runProactiveSummary", () => {
 
     expect(result.success).toBe(true);
     expect(result.messagesSummarized).toBe(120);
-    expect(result.summaryPath).toContain("/memory/summaries/");
+    expect(result.summaryPath?.replace(/\\/g, "/")).toContain("/memory/summaries/");
     expect(fsMock.default.mkdir).toHaveBeenCalled();
     expect(fsMock.default.writeFile).toHaveBeenCalled();
 

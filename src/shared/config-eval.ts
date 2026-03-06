@@ -46,6 +46,7 @@ export type RuntimeRequires = {
   anyBins?: string[];
   env?: string[];
   config?: string[];
+  connections?: string[];
 };
 
 type RuntimeRequirementEvalParams = {
@@ -55,6 +56,7 @@ type RuntimeRequirementEvalParams = {
   hasRemoteBin?: (bin: string) => boolean;
   hasEnv: (envName: string) => boolean;
   isConfigPathTruthy: (pathStr: string) => boolean;
+  hasConnection?: (provider: string) => boolean;
 };
 
 export function evaluateRuntimeRequires(params: RuntimeRequirementEvalParams): boolean {
@@ -102,6 +104,15 @@ export function evaluateRuntimeRequires(params: RuntimeRequirementEvalParams): b
     }
   }
 
+  const requiredConnections = requires.connections ?? [];
+  if (requiredConnections.length > 0 && params.hasConnection) {
+    for (const provider of requiredConnections) {
+      if (!params.hasConnection(provider)) {
+        return false;
+      }
+    }
+  }
+
   return true;
 }
 
@@ -131,6 +142,7 @@ export function evaluateRuntimeEligibility(
     hasAnyRemoteBin: params.hasAnyRemoteBin,
     hasEnv: params.hasEnv,
     isConfigPathTruthy: params.isConfigPathTruthy,
+    hasConnection: params.hasConnection,
   });
 }
 

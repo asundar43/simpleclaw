@@ -123,10 +123,9 @@ describe("buildGatewayReloadPlan", () => {
     expect(plan.restartReasons).toContain("gateway.port");
   });
 
-  it("restarts the Gmail watcher for hooks.gmail changes", () => {
+  it("reloads hooks for hooks.gmail changes", () => {
     const plan = buildGatewayReloadPlan(["hooks.gmail.account"]);
     expect(plan.restartGateway).toBe(false);
-    expect(plan.restartGmailWatcher).toBe(true);
     expect(plan.reloadHooks).toBe(true);
   });
 

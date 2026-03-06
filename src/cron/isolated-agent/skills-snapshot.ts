@@ -3,7 +3,7 @@ import { buildWorkspaceSkillSnapshot, type SkillSnapshot } from "../../agents/sk
 import { matchesSkillFilter } from "../../agents/skills/filter.js";
 import { getSkillsSnapshotVersion } from "../../agents/skills/refresh.js";
 import type { SimpleClawConfig } from "../../config/config.js";
-import { getRemoteSkillEligibility } from "../../infra/skills-remote.js";
+import { getSkillEligibilityContext } from "../../infra/skills-remote.js";
 
 export function resolveCronSkillsSnapshot(params: {
   workspaceDir: string;
@@ -31,7 +31,7 @@ export function resolveCronSkillsSnapshot(params: {
   return buildWorkspaceSkillSnapshot(params.workspaceDir, {
     config: params.config,
     skillFilter,
-    eligibility: { remote: getRemoteSkillEligibility() },
+    eligibility: getSkillEligibilityContext(),
     snapshotVersion,
   });
 }
