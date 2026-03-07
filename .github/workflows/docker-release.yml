@@ -1,17 +1,20 @@
 name: Docker Release
 
 on:
-  push:
-    branches:
-      - main
-    tags:
-      - "v*"
-    paths-ignore:
-      - "docs/**"
-      - "**/*.md"
-      - "**/*.mdx"
-      - ".agents/**"
-      - "skills/**"
+  workflow_call:
+    inputs:
+      simpleclaw_version:
+        description: "SimpleClaw version to install from GAR"
+        required: false
+        type: string
+        default: "latest"
+  workflow_dispatch:
+    inputs:
+      simpleclaw_version:
+        description: "SimpleClaw version to install from GAR"
+        required: false
+        type: string
+        default: "latest"
 
 concurrency:
   group: docker-release-${{ github.workflow }}-${{ github.ref }}
@@ -20,16 +23,18 @@ concurrency:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  GAR_REGION: us-central1
+  GAR_PROJECT: jarvis-486806
+  GAR_REPO: simpleclaw-npm
 
 jobs:
-  # Build amd64 image
-  # Disabled — pnpm build requires A2UI canvas sources not available in this fork.
+  # Build amd64 image from the pre-built GAR package.
   build-amd64:
-    if: false
     runs-on: ubuntu-latest
     permissions:
       packages: write
       contents: read
+      id-token: write
     outputs:
       image-digest: ${{ steps.build.outputs.digest }}
     steps:
@@ -46,24 +51,35 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_WIF_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Get GAR auth token
+        id: gar-token
+        run: echo "token=$(gcloud auth print-access-token)" >> "$GITHUB_OUTPUT"
+
       - name: Resolve image tags (amd64)
         id: tags
         shell: bash
         env:
           IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          VERSION: ${{ inputs.simpleclaw_version || 'latest' }}
         run: |
           set -euo pipefail
           tags=()
-          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
-            tags+=("${IMAGE}:main-amd64")
-          fi
-          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
-            version="${GITHUB_REF#refs/tags/v}"
-            tags+=("${IMAGE}:${version}-amd64")
-          fi
-          if [[ ${#tags[@]} -eq 0 ]]; then
-            echo "::error::No amd64 tags resolved for ref ${GITHUB_REF}"
-            exit 1
+          if [[ "$VERSION" != "latest" ]]; then
+            tags+=("${IMAGE}:${VERSION}-amd64")
+            tags+=("${IMAGE}:${VERSION}")
+            tags+=("${IMAGE}:latest")
+          else
+            tags+=("${IMAGE}:latest-amd64")
+            tags+=("${IMAGE}:latest")
           fi
           {
             echo "value<<EOF"
@@ -76,7 +92,14 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: Dockerfile.gar
           platforms: linux/amd64
+          build-args: |
+            GAR_AUTH_TOKEN=${{ steps.gar-token.outputs.token }}
+            SIMPLECLAW_VERSION=${{ inputs.simpleclaw_version || 'latest' }}
+            GAR_REGION=${{ env.GAR_REGION }}
+            GAR_PROJECT=${{ env.GAR_PROJECT }}
+            GAR_REPO=${{ env.GAR_REPO }}
           tags: ${{ steps.tags.outputs.value }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-cache:amd64
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-cache:amd64,mode=max
@@ -90,6 +113,7 @@ jobs:
     permissions:
       packages: write
       contents: read
+      id-token: write
     outputs:
       image-digest: ${{ steps.build.outputs.digest }}
     steps:
@@ -106,24 +130,32 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_WIF_SERVICE_ACCOUNT }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Get GAR auth token
+        id: gar-token
+        run: echo "token=$(gcloud auth print-access-token)" >> "$GITHUB_OUTPUT"
+
       - name: Resolve image tags (arm64)
         id: tags
         shell: bash
         env:
           IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          VERSION: ${{ inputs.simpleclaw_version || 'latest' }}
         run: |
           set -euo pipefail
           tags=()
-          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
-            tags+=("${IMAGE}:main-arm64")
-          fi
-          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
-            version="${GITHUB_REF#refs/tags/v}"
-            tags+=("${IMAGE}:${version}-arm64")
-          fi
-          if [[ ${#tags[@]} -eq 0 ]]; then
-            echo "::error::No arm64 tags resolved for ref ${GITHUB_REF}"
-            exit 1
+          if [[ "$VERSION" != "latest" ]]; then
+            tags+=("${IMAGE}:${VERSION}-arm64")
+          else
+            tags+=("${IMAGE}:latest-arm64")
           fi
           {
             echo "value<<EOF"
@@ -136,65 +168,16 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: Dockerfile.gar
           platforms: linux/arm64
+          build-args: |
+            GAR_AUTH_TOKEN=${{ steps.gar-token.outputs.token }}
+            SIMPLECLAW_VERSION=${{ inputs.simpleclaw_version || 'latest' }}
+            GAR_REGION=${{ env.GAR_REGION }}
+            GAR_PROJECT=${{ env.GAR_PROJECT }}
+            GAR_REPO=${{ env.GAR_REPO }}
           tags: ${{ steps.tags.outputs.value }}
           cache-from: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-cache:arm64
           cache-to: type=registry,ref=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-cache:arm64,mode=max
           provenance: false
           push: true
-
-  # Create image manifest (amd64-only while ARM job is disabled)
-  create-manifest:
-    runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
-    needs: [build-amd64]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Resolve manifest tags
-        id: tags
-        shell: bash
-        env:
-          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-        run: |
-          set -euo pipefail
-          tags=()
-          if [[ "${GITHUB_REF}" == "refs/heads/main" ]]; then
-            tags+=("${IMAGE}:main")
-          fi
-          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
-            version="${GITHUB_REF#refs/tags/v}"
-            tags+=("${IMAGE}:${version}")
-          fi
-          if [[ ${#tags[@]} -eq 0 ]]; then
-            echo "::error::No manifest tags resolved for ref ${GITHUB_REF}"
-            exit 1
-          fi
-          {
-            echo "value<<EOF"
-            printf "%s\n" "${tags[@]}"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-
-      - name: Create and push manifest
-        shell: bash
-        run: |
-          set -euo pipefail
-          mapfile -t tags <<< "${{ steps.tags.outputs.value }}"
-          args=()
-          for tag in "${tags[@]}"; do
-            [ -z "$tag" ] && continue
-            args+=("-t" "$tag")
-          done
-          docker buildx imagetools create "${args[@]}" \
-            ${{ needs.build-amd64.outputs.image-digest }}

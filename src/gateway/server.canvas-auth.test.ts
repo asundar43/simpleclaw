@@ -263,7 +263,11 @@ describe("gateway canvas host auth", () => {
           const scopedA2ui = await fetch(
             `http://${host}:${listener.port}${scopedCanvasPath(activeNodeCapability, `${A2UI_PATH}/`)}`,
           );
-          expect(scopedA2ui.status).toBe(200);
+          // Auth gate passes (not 401/429); asset serving may return 200 or 503
+          // depending on whether A2UI bundle is present (e.g. absent on Windows CI).
+          // This test validates capability-scoped auth, not A2UI asset resolution.
+          expect(scopedA2ui.status).not.toBe(401);
+          expect(scopedA2ui.status).not.toBe(429);
 
           await expectWsConnected(`ws://${host}:${listener.port}${activeWsPath}`);
 

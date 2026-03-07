@@ -33,6 +33,7 @@ on:
 permissions:
   contents: read
   id-token: write
+  packages: write
 
 concurrency:
   group: publish-gar-${{ github.ref }}
@@ -47,6 +48,8 @@ env:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    outputs:
+      published_version: ${{ steps.version.outputs.value }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -114,6 +117,12 @@ jobs:
             --catalog \
             ${{ steps.scope.outputs.flags }}
 
+      - name: Resolve published version
+        id: version
+        run: |
+          VERSION=$(node -e "console.log(require('./package.json').version)")
+          echo "value=$VERSION" >> "$GITHUB_OUTPUT"
+
       - name: Verify published version
         if: inputs.dry_run != true
         env:
@@ -121,9 +130,24 @@ jobs:
         run: |
           TOKEN=$(gcloud auth print-access-token)
           npm config set "//${{ env.GAR_REGION }}-npm.pkg.dev/${{ env.GAR_PROJECT }}/${{ env.GAR_REPO }}/:_authToken" "$TOKEN"
-          EXPECTED=$(node -e "console.log(require('./package.json').version)")
+          EXPECTED="${{ steps.version.outputs.value }}"
           ACTUAL=$(npm view simpleclaw version --registry "$GAR_REGISTRY" 2>/dev/null || echo "NOT_FOUND")
           echo "Expected: $EXPECTED, Published: $ACTUAL"
           if [ "$ACTUAL" != "$EXPECTED" ]; then
             echo "::warning::Published version ($ACTUAL) does not match package.json ($EXPECTED)"
           fi
+
+  # Trigger downstream workflows after successful publish
+  docker-release:
+    needs: [publish]
+    if: inputs.dry_run != true
+    uses: ./.github/workflows/docker-release.yml
+    with:
+      simpleclaw_version: ${{ needs.publish.outputs.published_version }}
+    secrets: inherit
+
+  install-smoke:
+    needs: [publish]
+    if: inputs.dry_run != true
+    uses: ./.github/workflows/install-smoke.yml
+    secrets: inherit
