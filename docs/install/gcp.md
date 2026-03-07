@@ -223,7 +223,6 @@ OPENCLAW_GATEWAY_PORT=18789
 OPENCLAW_CONFIG_DIR=/home/$USER/.openclaw
 OPENCLAW_WORKSPACE_DIR=/home/$USER/.openclaw/workspace
 
-GOG_KEYRING_PASSWORD=change-me-now
 XDG_CONFIG_HOME=/home/node/.openclaw
 ```
 
@@ -256,7 +255,6 @@ services:
       - OPENCLAW_GATEWAY_BIND=${OPENCLAW_GATEWAY_BIND}
       - OPENCLAW_GATEWAY_PORT=${OPENCLAW_GATEWAY_PORT}
       - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
-      - GOG_KEYRING_PASSWORD=${GOG_KEYRING_PASSWORD}
       - XDG_CONFIG_HOME=${XDG_CONFIG_HOME}
       - PATH=/home/linuxbrew/.linuxbrew/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     volumes:
@@ -289,7 +287,7 @@ All external binaries required by skills must be installed at image build time.
 
 The examples below show three common binaries only:
 
-- `gog` for Gmail access
+- `gws` for Gmail access
 - `goplaces` for Google Places
 - `wacli` for WhatsApp
 
@@ -310,8 +308,7 @@ FROM node:22-bookworm
 RUN apt-get update && apt-get install -y socat && rm -rf /var/lib/apt/lists/*
 
 # Example binary 1: Gmail CLI
-RUN curl -L https://github.com/steipete/gog/releases/latest/download/gog_Linux_x86_64.tar.gz \
-  | tar -xz -C /usr/local/bin && chmod +x /usr/local/bin/gog
+RUN npm install -g @googleworkspace/cli
 
 # Example binary 2: Google Places CLI
 RUN curl -L https://github.com/steipete/goplaces/releases/latest/download/goplaces_Linux_x86_64.tar.gz \
@@ -353,7 +350,7 @@ docker compose up -d openclaw-gateway
 Verify binaries:
 
 ```bash
-docker compose exec openclaw-gateway which gog
+docker compose exec openclaw-gateway which gwsc
 docker compose exec openclaw-gateway which goplaces
 docker compose exec openclaw-gateway which wacli
 ```
@@ -361,7 +358,7 @@ docker compose exec openclaw-gateway which wacli
 Expected output:
 
 ```
-/usr/local/bin/gog
+/usr/local/bin/gwsc
 /usr/local/bin/goplaces
 /usr/local/bin/wacli
 ```
@@ -403,18 +400,18 @@ Paste your gateway token.
 OpenClaw runs in Docker, but Docker is not the source of truth.
 All long-lived state must survive restarts, rebuilds, and reboots.
 
-| Component           | Location                          | Persistence mechanism  | Notes                            |
-| ------------------- | --------------------------------- | ---------------------- | -------------------------------- |
-| Gateway config      | `/home/node/.openclaw/`           | Host volume mount      | Includes `openclaw.json`, tokens |
-| Model auth profiles | `/home/node/.openclaw/`           | Host volume mount      | OAuth tokens, API keys           |
-| Skill configs       | `/home/node/.openclaw/skills/`    | Host volume mount      | Skill-level state                |
-| Agent workspace     | `/home/node/.openclaw/workspace/` | Host volume mount      | Code and agent artifacts         |
-| WhatsApp session    | `/home/node/.openclaw/`           | Host volume mount      | Preserves QR login               |
-| Gmail keyring       | `/home/node/.openclaw/`           | Host volume + password | Requires `GOG_KEYRING_PASSWORD`  |
-| External binaries   | `/usr/local/bin/`                 | Docker image           | Must be baked at build time      |
-| Node runtime        | Container filesystem              | Docker image           | Rebuilt every image build        |
-| OS packages         | Container filesystem              | Docker image           | Do not install at runtime        |
-| Docker container    | Ephemeral                         | Restartable            | Safe to destroy                  |
+| Component           | Location                          | Persistence mechanism | Notes                            |
+| ------------------- | --------------------------------- | --------------------- | -------------------------------- |
+| Gateway config      | `/home/node/.openclaw/`           | Host volume mount     | Includes `openclaw.json`, tokens |
+| Model auth profiles | `/home/node/.openclaw/`           | Host volume mount     | OAuth tokens, API keys           |
+| Skill configs       | `/home/node/.openclaw/skills/`    | Host volume mount     | Skill-level state                |
+| Agent workspace     | `/home/node/.openclaw/workspace/` | Host volume mount     | Code and agent artifacts         |
+| WhatsApp session    | `/home/node/.openclaw/`           | Host volume mount     | Preserves QR login               |
+| Gmail credentials   | `/home/node/.openclaw/`           | Host volume mount     | Managed by `gws` CLI             |
+| External binaries   | `/usr/local/bin/`                 | Docker image          | Must be baked at build time      |
+| Node runtime        | Container filesystem              | Docker image          | Rebuilt every image build        |
+| OS packages         | Container filesystem              | Docker image          | Do not install at runtime        |
+| Docker container    | Ephemeral                         | Restartable           | Safe to destroy                  |
 
 ---
 

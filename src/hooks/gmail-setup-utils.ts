@@ -315,8 +315,25 @@ export async function ensureTailscaleEndpoint(params: {
   return params.token ? `${baseUrl}?token=${params.token}` : baseUrl;
 }
 
-export async function resolveProjectIdFromGogCredentials(): Promise<string | null> {
-  const candidates = gogCredentialsPaths();
+export async function ensureGwscDependency() {
+  if (hasBinary("gwsc")) {
+    return;
+  }
+  if (hasBinary("gws")) {
+    throw new Error(
+      "gws found but gwsc wrapper missing.\n" +
+        "Run the google-workspace skill setup: bash ~/.openclaw/skills/google-workspace/setup.sh",
+    );
+  }
+  throw new Error(
+    "google-workspace CLI not installed.\n" +
+      "Install via skill setup: bash ~/.openclaw/skills/google-workspace/setup.sh\n" +
+      "Or manually: npm install -g @googleworkspace/cli",
+  );
+}
+
+export async function resolveProjectIdFromGwscCredentials(): Promise<string | null> {
+  const candidates = gwscCredentialsPaths();
   for (const candidate of candidates) {
     if (!fs.existsSync(candidate)) {
       continue;
@@ -324,7 +341,7 @@ export async function resolveProjectIdFromGogCredentials(): Promise<string | nul
     try {
       const raw = fs.readFileSync(candidate, "utf-8");
       const parsed = JSON.parse(raw) as Record<string, unknown>;
-      const clientId = extractGogClientId(parsed);
+      const clientId = extractGwsClientId(parsed);
       const projectNumber = extractProjectNumber(clientId);
       if (!projectNumber) {
         continue;
@@ -354,20 +371,23 @@ export async function resolveProjectIdFromGogCredentials(): Promise<string | nul
   return null;
 }
 
-function gogCredentialsPaths(): string[] {
+function gwscCredentialsPaths(): string[] {
   const paths: string[] = [];
   const xdg = process.env.XDG_CONFIG_HOME;
   if (xdg) {
+    paths.push(path.join(xdg, "gwsc", "credentials.json"));
     paths.push(path.join(xdg, "gogcli", "credentials.json"));
   }
+  paths.push(resolveUserPath("~/.config/gwsc/credentials.json"));
   paths.push(resolveUserPath("~/.config/gogcli/credentials.json"));
   if (process.platform === "darwin") {
+    paths.push(resolveUserPath("~/Library/Application Support/gwsc/credentials.json"));
     paths.push(resolveUserPath("~/Library/Application Support/gogcli/credentials.json"));
   }
   return paths;
 }
 
-function extractGogClientId(parsed: Record<string, unknown>): string | null {
+function extractGwsClientId(parsed: Record<string, unknown>): string | null {
   const installed = parsed.installed as Record<string, unknown> | undefined;
   const web = parsed.web as Record<string, unknown> | undefined;
   const candidate = installed?.client_id || web?.client_id || parsed.client_id || "";

@@ -223,13 +223,13 @@ htop
 
 Most OpenClaw features work on ARM64, but some external binaries may need ARM builds:
 
-| Tool               | ARM64 Status | Notes                               |
-| ------------------ | ------------ | ----------------------------------- |
-| Node.js            | ✅           | Works great                         |
-| WhatsApp (Baileys) | ✅           | Pure JS, no issues                  |
-| Telegram           | ✅           | Pure JS, no issues                  |
-| gog (Gmail CLI)    | ⚠️           | Check for ARM release               |
-| Chromium (browser) | ✅           | `sudo apt install chromium-browser` |
+| Tool                   | ARM64 Status | Notes                               |
+| ---------------------- | ------------ | ----------------------------------- |
+| Node.js                | ✅           | Works great                         |
+| WhatsApp (Baileys)     | ✅           | Pure JS, no issues                  |
+| Telegram               | ✅           | Pure JS, no issues                  |
+| google-workspace (gws) | ✅           | npm package, works on ARM           |
+| Chromium (browser)     | ✅           | `sudo apt install chromium-browser` |
 
 If a skill fails, check if its binary has an ARM build. Many Go/Rust tools do; some don't.
 

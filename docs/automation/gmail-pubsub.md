@@ -1,5 +1,5 @@
 ---
-summary: "Gmail Pub/Sub push wired into OpenClaw webhooks via gogcli"
+summary: "Gmail Pub/Sub push wired into OpenClaw webhooks via google-workspace"
 read_when:
   - Wiring Gmail inbox triggers to OpenClaw
   - Setting up Pub/Sub push for agent wake
@@ -8,12 +8,12 @@ title: "Gmail PubSub"
 
 # Gmail Pub/Sub -> OpenClaw
 
-Goal: Gmail watch -> Pub/Sub push -> `gog gmail watch serve` -> OpenClaw webhook.
+Goal: Gmail watch -> Pub/Sub push -> `gwsc gmail +watch` -> OpenClaw webhook.
 
 ## Prereqs
 
 - `gcloud` installed and logged in ([install guide](https://docs.cloud.google.com/sdk/docs/install-sdk)).
-- `gog` (gogcli) installed and authorized for the Gmail account ([gogcli.sh](https://gogcli.sh/)).
+- `gwsc` (google-workspace CLI) installed and authorized for the Gmail account (set up via the google-workspace skill).
 - OpenClaw hooks enabled (see [Webhooks](/automation/webhook)).
 - `tailscale` logged in ([tailscale.com](https://tailscale.com/)). Supported setup uses Tailscale Funnel for the public HTTPS endpoint.
   Other tunnel services can work, but are DIY/unsupported and require manual wiring.
@@ -115,18 +115,18 @@ If you need the backend to receive the prefixed path, set
 
 Want a custom endpoint? Use `--push-endpoint <url>` or `--tailscale off`.
 
-Platform note: on macOS the wizard installs `gcloud`, `gogcli`, and `tailscale`
+Platform note: on macOS the wizard installs `gcloud`, `gwsc`, and `tailscale`
 via Homebrew; on Linux install them manually first.
 
 Gateway auto-start (recommended):
 
 - When `hooks.enabled=true` and `hooks.gmail.account` is set, the Gateway starts
-  `gog gmail watch serve` on boot and auto-renews the watch.
+  `gwsc gmail +watch` on boot and auto-renews the watch.
 - Set `OPENCLAW_SKIP_GMAIL_WATCHER=1` to opt out (useful if you run the daemon yourself).
 - Do not run the manual daemon at the same time, or you will hit
   `listen tcp 127.0.0.1:8788: bind: address already in use`.
 
-Manual daemon (starts `gog gmail watch serve` + auto-renew):
+Manual daemon (starts `gwsc gmail +watch` + auto-renew):
 
 ```bash
 openclaw webhooks gmail run
@@ -134,7 +134,7 @@ openclaw webhooks gmail run
 
 ## One-time setup
 
-1. Select the GCP project **that owns the OAuth client** used by `gog`.
+1. Select the GCP project **that owns the OAuth client** used by `gwsc`.
 
 ```bash
 gcloud auth login
@@ -152,35 +152,26 @@ gcloud services enable gmail.googleapis.com pubsub.googleapis.com
 3. Create a topic:
 
 ```bash
-gcloud pubsub topics create gog-gmail-watch
+gcloud pubsub topics create gws-gmail-watch
 ```
 
 4. Allow Gmail push to publish:
 
 ```bash
-gcloud pubsub topics add-iam-policy-binding gog-gmail-watch \
+gcloud pubsub topics add-iam-policy-binding gws-gmail-watch \
   --member=serviceAccount:gmail-api-push@system.gserviceaccount.com \
   --role=roles/pubsub.publisher
 ```
 
 ## Start the watch
 
+The new `gwsc` CLI combines watch start and serve into a single command:
+
 ```bash
-gog gmail watch start \
+gwsc gmail +watch \
   --account openclaw@gmail.com \
   --label INBOX \
-  --topic projects/<project-id>/topics/gog-gmail-watch
-```
-
-Save the `history_id` from the output (for debugging).
-
-## Run the push handler
-
-Local example (shared token auth):
-
-```bash
-gog gmail watch serve \
-  --account openclaw@gmail.com \
+  --topic projects/<project-id>/topics/gws-gmail-watch \
   --bind 127.0.0.1 \
   --port 8788 \
   --path /gmail-pubsub \
@@ -193,7 +184,7 @@ gog gmail watch serve \
 
 Notes:
 
-- `--token` protects the push endpoint (`x-gog-token` or `?token=`).
+- `--token` protects the push endpoint (`x-gws-token` or `?token=`).
 - `--hook-url` points to OpenClaw `/hooks/gmail` (mapped; isolated run + summary to main).
 - `--include-body` and `--max-bytes` control the body snippet sent to OpenClaw.
 
@@ -211,15 +202,15 @@ cloudflared tunnel --url http://127.0.0.1:8788 --no-autoupdate
 Use the generated URL as the push endpoint:
 
 ```bash
-gcloud pubsub subscriptions create gog-gmail-watch-push \
-  --topic gog-gmail-watch \
+gcloud pubsub subscriptions create gws-gmail-watch-push \
+  --topic gws-gmail-watch \
   --push-endpoint "https://<public-url>/gmail-pubsub?token=<shared>"
 ```
 
 Production: use a stable HTTPS endpoint and configure Pub/Sub OIDC JWT, then run:
 
 ```bash
-gog gmail watch serve --verify-oidc --oidc-email <svc@...>
+gwsc gmail +watch --verify-oidc --oidc-email <svc@...>
 ```
 
 ## Test
@@ -227,7 +218,7 @@ gog gmail watch serve --verify-oidc --oidc-email <svc@...>
 Send a message to the watched inbox:
 
 ```bash
-gog gmail send \
+gwsc gmail +send \
   --account openclaw@gmail.com \
   --to openclaw@gmail.com \
   --subject "watch test" \
@@ -237,20 +228,20 @@ gog gmail send \
 Check watch state and history:
 
 ```bash
-gog gmail watch status --account openclaw@gmail.com
-gog gmail history --account openclaw@gmail.com --since <historyId>
+gwsc gmail +watch status --account openclaw@gmail.com
+gwsc gmail +history --account openclaw@gmail.com --since <historyId>
 ```
 
 ## Troubleshooting
 
 - `Invalid topicName`: project mismatch (topic not in the OAuth client project).
 - `User not authorized`: missing `roles/pubsub.publisher` on the topic.
-- Empty messages: Gmail push only provides `historyId`; fetch via `gog gmail history`.
+- Empty messages: Gmail push only provides `historyId`; fetch via `gwsc gmail +history`.
 
 ## Cleanup
 
 ```bash
-gog gmail watch stop --account openclaw@gmail.com
-gcloud pubsub subscriptions delete gog-gmail-watch-push
-gcloud pubsub topics delete gog-gmail-watch
+gwsc gmail +watch stop --account openclaw@gmail.com
+gcloud pubsub subscriptions delete gws-gmail-watch-push
+gcloud pubsub topics delete gws-gmail-watch
 ```

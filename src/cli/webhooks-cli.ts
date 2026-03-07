@@ -30,7 +30,7 @@ export function registerWebhooksCli(program: Command) {
         `\n${theme.muted("Docs:")} ${formatDocsLink("/cli/webhooks", "docs.simpleclaw.ai/cli/webhooks")}\n`,
     );
 
-  const gmail = webhooks.command("gmail").description("Gmail Pub/Sub hooks (via gogcli)");
+  const gmail = webhooks.command("gmail").description("Gmail Pub/Sub hooks (via google-workspace)");
 
   gmail
     .command("setup")
@@ -42,10 +42,10 @@ export function registerWebhooksCli(program: Command) {
     .option("--label <label>", "Gmail label to watch", DEFAULT_GMAIL_LABEL)
     .option("--hook-url <url>", "SimpleClaw hook URL")
     .option("--hook-token <token>", "SimpleClaw hook token")
-    .option("--push-token <token>", "Push token for gog watch serve")
-    .option("--bind <host>", "gog watch serve bind host", DEFAULT_GMAIL_SERVE_BIND)
-    .option("--port <port>", "gog watch serve port", String(DEFAULT_GMAIL_SERVE_PORT))
-    .option("--path <path>", "gog watch serve path", DEFAULT_GMAIL_SERVE_PATH)
+    .option("--push-token <token>", "Push token for gwsc watch")
+    .option("--bind <host>", "gwsc watch bind host", DEFAULT_GMAIL_SERVE_BIND)
+    .option("--port <port>", "gwsc watch port", String(DEFAULT_GMAIL_SERVE_PORT))
+    .option("--path <path>", "gwsc watch path", DEFAULT_GMAIL_SERVE_PATH)
     .option("--include-body", "Include email body snippets", true)
     .option("--max-bytes <n>", "Max bytes for body snippets", String(DEFAULT_GMAIL_MAX_BYTES))
     .option(
@@ -73,17 +73,17 @@ export function registerWebhooksCli(program: Command) {
 
   gmail
     .command("run")
-    .description("Run gog watch serve + auto-renew loop")
+    .description("Run gwsc gmail +watch with auto-renewal")
     .option("--account <email>", "Gmail account to watch")
     .option("--topic <topic>", "Pub/Sub topic path (projects/.../topics/..)")
     .option("--subscription <name>", "Pub/Sub subscription name")
     .option("--label <label>", "Gmail label to watch")
     .option("--hook-url <url>", "SimpleClaw hook URL")
     .option("--hook-token <token>", "SimpleClaw hook token")
-    .option("--push-token <token>", "Push token for gog watch serve")
-    .option("--bind <host>", "gog watch serve bind host")
-    .option("--port <port>", "gog watch serve port")
-    .option("--path <path>", "gog watch serve path")
+    .option("--push-token <token>", "Push token for gwsc watch")
+    .option("--bind <host>", "gwsc watch bind host")
+    .option("--port <port>", "gwsc watch port")
+    .option("--path <path>", "gwsc watch path")
     .option("--include-body", "Include email body snippets")
     .option("--max-bytes <n>", "Max bytes for body snippets")
     .option("--renew-minutes <n>", "Renew watch every N minutes")

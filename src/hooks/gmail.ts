@@ -7,8 +7,8 @@ import {
 } from "../config/config.js";
 
 export const DEFAULT_GMAIL_LABEL = "INBOX";
-export const DEFAULT_GMAIL_TOPIC = "gog-gmail-watch";
-export const DEFAULT_GMAIL_SUBSCRIPTION = "gog-gmail-watch-push";
+export const DEFAULT_GMAIL_TOPIC = "gws-gmail-watch";
+export const DEFAULT_GMAIL_SUBSCRIPTION = "gws-gmail-watch-push";
 export const DEFAULT_GMAIL_SERVE_BIND = "127.0.0.1";
 export const DEFAULT_GMAIL_SERVE_PORT = 8788;
 export const DEFAULT_GMAIL_SERVE_PATH = "/gmail-pubsub";
@@ -80,7 +80,7 @@ export function normalizeHooksPath(raw?: string): string {
 export function normalizeServePath(raw?: string): string {
   const base = raw?.trim() || DEFAULT_GMAIL_SERVE_PATH;
   // Tailscale funnel/serve strips the set-path prefix before proxying.
-  // To accept requests at /<path> externally, gog must listen on "/".
+  // To accept requests at /<path> externally, gwsc must listen on "/".
   if (base === "/") {
     return "/";
   }
@@ -205,27 +205,18 @@ export function resolveGmailHookRuntimeConfig(
   };
 }
 
-export function buildGogWatchStartArgs(
-  cfg: Pick<GmailHookRuntimeConfig, "account" | "label" | "topic">,
-): string[] {
-  return [
-    "gmail",
-    "watch",
-    "start",
-    "--account",
-    cfg.account,
-    "--label",
-    cfg.label,
-    "--topic",
-    cfg.topic,
-  ];
-}
-
-export function buildGogWatchServeArgs(cfg: GmailHookRuntimeConfig): string[] {
+export function buildGwscWatchArgs(cfg: GmailHookRuntimeConfig): string[] {
+  const parsed = parseTopicPath(cfg.topic);
+  const projectId = parsed?.projectId ?? "";
   const args = [
     "gmail",
-    "watch",
-    "serve",
+    "+watch",
+    "--project",
+    projectId,
+    "--label-ids",
+    cfg.label,
+    "--format",
+    "full",
     "--account",
     cfg.account,
     "--bind",

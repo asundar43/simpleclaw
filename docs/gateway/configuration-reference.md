@@ -2246,8 +2246,8 @@ Auth: `Authorization: Bearer <token>` or `x-openclaw-token: <token>`.
   hooks: {
     gmail: {
       account: "openclaw@gmail.com",
-      topic: "projects/<project-id>/topics/gog-gmail-watch",
-      subscription: "gog-gmail-watch-push",
+      topic: "projects/<project-id>/topics/gws-gmail-watch",
+      subscription: "gws-gmail-watch-push",
       pushToken: "shared-push-token",
       hookUrl: "http://127.0.0.1:18789/hooks/gmail",
       includeBody: true,
@@ -2262,8 +2262,8 @@ Auth: `Authorization: Bearer <token>` or `x-openclaw-token: <token>`.
 }
 ```
 
-- Gateway auto-starts `gog gmail watch serve` on boot when configured. Set `OPENCLAW_SKIP_GMAIL_WATCHER=1` to disable.
-- Don't run a separate `gog gmail watch serve` alongside the Gateway.
+- Gateway auto-starts `gwsc gmail +watch` on boot when configured. Set `OPENCLAW_SKIP_GMAIL_WATCHER=1` to disable.
+- Don't run a separate `gwsc gmail +watch` alongside the Gateway.
 
 ---
 

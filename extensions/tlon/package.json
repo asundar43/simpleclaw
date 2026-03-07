@@ -1,6 +1,6 @@
 {
   "name": "@simpleclaw/tlon",
-  "version": "2026.3.2",
+  "version": "2026.3.7",
   "description": "SimpleClaw Tlon/Urbit channel plugin",
   "type": "module",
   "dependencies": {

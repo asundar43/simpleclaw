@@ -69,7 +69,11 @@ jobs:
       - name: Install simpleclaw globally from GAR
         run: |
           GAR_REGISTRY="https://${GAR_REGION}-npm.pkg.dev/${GAR_PROJECT}/${GAR_REPO}"
-          npm install -g simpleclaw@latest --registry "$GAR_REGISTRY"
+          # Download the tarball from GAR, then install from the local tarball.
+          # This ensures the package itself is fetched from GAR while transitive
+          # dependencies (e.g. @agentclientprotocol/sdk) resolve from public npm.
+          npm pack simpleclaw@latest --registry "$GAR_REGISTRY"
+          npm install -g simpleclaw-*.tgz
 
       - name: Verify installed version
         run: |

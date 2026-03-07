@@ -1,6 +1,6 @@
 {
   "name": "@simpleclaw/googlechat",
-  "version": "2026.3.2",
+  "version": "2026.3.7",
   "private": true,
   "description": "SimpleClaw Google Chat channel plugin",
   "type": "module",

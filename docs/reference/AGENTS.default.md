@@ -103,7 +103,7 @@ git commit -m "Add Clawd workspace"
 - **imsg** — Send, read, stream iMessage & SMS.
 - **wacli** — WhatsApp CLI: sync, search, send.
 - **discord** — Discord actions: react, stickers, polls. Use `user:<id>` or `channel:<id>` targets (bare numeric ids are ambiguous).
-- **gog** — Google Suite CLI: Gmail, Calendar, Drive, Contacts.
+- **google-workspace** — Google Workspace API CLI: Gmail, Calendar, Drive, Contacts, Sheets, Docs, Tasks.
 - **spotify-player** — Terminal Spotify client to search/queue/control playback.
 - **sag** — ElevenLabs speech with mac-style say UX; streams to speakers by default.
 - **Sonos CLI** — Control Sonos speakers (discover/status/playback/volume/grouping) from scripts.

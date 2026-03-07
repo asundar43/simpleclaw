@@ -23,7 +23,7 @@ Lobster executes multi-step workflows with approval checkpoints. Use it when:
 ```json
 {
   "action": "run",
-  "pipeline": "gog.gmail.search --query 'newer_than:1d' --max 20 | email.triage"
+  "pipeline": "gwsc.gmail.search --query 'newer_than:1d' --max 20 | email.triage"
 }
 ```
 
@@ -70,7 +70,7 @@ Present the prompt to the user. If they approve:
 ### Email triage
 
 ```
-gog.gmail.search --query 'newer_than:1d' --max 20 | email.triage
+gwsc.gmail.search --query 'newer_than:1d' --max 20 | email.triage
 ```
 
 Fetches recent emails, classifies into buckets (needs_reply, needs_action, fyi).
@@ -78,7 +78,7 @@ Fetches recent emails, classifies into buckets (needs_reply, needs_action, fyi).
 ### Email triage with approval gate
 
 ```
-gog.gmail.search --query 'newer_than:1d' | email.triage | approve --prompt 'Process these?'
+gwsc.gmail.search --query 'newer_than:1d' | email.triage | approve --prompt 'Process these?'
 ```
 
 Same as above, but halts for approval before returning.

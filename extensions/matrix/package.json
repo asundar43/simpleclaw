@@ -1,6 +1,6 @@
 {
   "name": "@simpleclaw/matrix",
-  "version": "2026.3.2",
+  "version": "2026.3.7",
   "description": "SimpleClaw Matrix channel plugin",
   "type": "module",
   "dependencies": {

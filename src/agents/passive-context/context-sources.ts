@@ -15,7 +15,7 @@ export type ContextSnippet = {
 
 /**
  * Query Gmail for recent emails matching the extracted entities.
- * Uses the `gog` CLI tool (same infrastructure as the Gmail hook system).
+ * Uses the `gwsc` CLI tool (same infrastructure as the Gmail hook system).
  */
 export async function queryGmailContext(params: {
   entities: ExtractedEntity[];
@@ -39,16 +39,18 @@ export async function queryGmailContext(params: {
 
     try {
       const { stdout } = await execFileAsync(
-        "gog",
+        "gwsc",
         [
           "gmail",
-          "search",
-          "--query",
-          `${query} newer_than:${lookbackDays}d`,
-          "--format",
-          "summary",
-          "--max-results",
-          "5",
+          "users",
+          "messages",
+          "list",
+          "--params",
+          JSON.stringify({
+            userId: "me",
+            q: `${query} newer_than:${lookbackDays}d`,
+            maxResults: 5,
+          }),
         ],
         { timeout: 10_000 },
       );

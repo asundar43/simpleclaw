@@ -395,8 +395,8 @@ Save to `~/.openclaw/openclaw.json` and you can DM the bot from that number.
     gmail: {
       account: "openclaw@gmail.com",
       label: "INBOX",
-      topic: "projects/<project-id>/topics/gog-gmail-watch",
-      subscription: "gog-gmail-watch-push",
+      topic: "projects/<project-id>/topics/gws-gmail-watch",
+      subscription: "gws-gmail-watch-push",
       pushToken: "shared-push-token",
       hookUrl: "http://127.0.0.1:18789/hooks/gmail",
       includeBody: true,

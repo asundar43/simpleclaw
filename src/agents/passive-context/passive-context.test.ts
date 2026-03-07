@@ -9,7 +9,7 @@ import {
   resolvePassiveContextConfig,
 } from "./passive-context-plugin.js";
 
-// Mock the gog CLI for Gmail queries
+// Mock the gwsc CLI for Gmail queries
 vi.mock("node:child_process", () => ({
   execFile: vi.fn(),
 }));

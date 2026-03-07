@@ -1,7 +1,7 @@
 /**
  * Gmail Watcher Service
  *
- * Automatically starts `gog gmail watch serve` when the gateway starts,
+ * Automatically starts `gwsc gmail +watch` when the gateway starts,
  * if hooks.gmail is configured with an account.
  */
 
@@ -9,11 +9,9 @@ import { type ChildProcess, spawn } from "node:child_process";
 import { hasBinary } from "../agents/skills.js";
 import type { SimpleClawConfig } from "../config/config.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
-import { runCommandWithTimeout } from "../process/exec.js";
 import { ensureTailscaleEndpoint } from "./gmail-setup-utils.js";
 import {
-  buildGogWatchServeArgs,
-  buildGogWatchStartArgs,
+  buildGwscWatchArgs,
   type GmailHookRuntimeConfig,
   resolveGmailHookRuntimeConfig,
 } from "./gmail.js";
@@ -32,43 +30,21 @@ let shuttingDown = false;
 let currentConfig: GmailHookRuntimeConfig | null = null;
 
 /**
- * Check if gog binary is available
+ * Check if gwsc binary is available
  */
-function isGogAvailable(): boolean {
-  return hasBinary("gog");
+function isGwscAvailable(): boolean {
+  return hasBinary("gwsc");
 }
 
 /**
- * Start the Gmail watch (registers with Gmail API)
+ * Spawn the gwsc gmail +watch process
  */
-async function startGmailWatch(
-  cfg: Pick<GmailHookRuntimeConfig, "account" | "label" | "topic">,
-): Promise<boolean> {
-  const args = ["gog", ...buildGogWatchStartArgs(cfg)];
-  try {
-    const result = await runCommandWithTimeout(args, { timeoutMs: 120_000 });
-    if (result.code !== 0) {
-      const message = result.stderr || result.stdout || "gog watch start failed";
-      log.error(`watch start failed: ${message}`);
-      return false;
-    }
-    log.info(`watch started for ${cfg.account}`);
-    return true;
-  } catch (err) {
-    log.error(`watch start error: ${String(err)}`);
-    return false;
-  }
-}
-
-/**
- * Spawn the gog gmail watch serve process
- */
-function spawnGogServe(cfg: GmailHookRuntimeConfig): ChildProcess {
-  const args = buildGogWatchServeArgs(cfg);
-  log.info(`starting gog ${args.join(" ")}`);
+function spawnGwscWatch(cfg: GmailHookRuntimeConfig): ChildProcess {
+  const args = buildGwscWatchArgs(cfg);
+  log.info(`starting gwsc ${args.join(" ")}`);
   let addressInUse = false;
 
-  const child = spawn("gog", args, {
+  const child = spawn("gwsc", args, {
     stdio: ["ignore", "pipe", "pipe"],
     detached: false,
   });
@@ -76,7 +52,7 @@ function spawnGogServe(cfg: GmailHookRuntimeConfig): ChildProcess {
   child.stdout?.on("data", (data: Buffer) => {
     const line = data.toString().trim();
     if (line) {
-      log.info(`[gog] ${line}`);
+      log.info(`[gwsc] ${line}`);
     }
   });
 
@@ -88,11 +64,11 @@ function spawnGogServe(cfg: GmailHookRuntimeConfig): ChildProcess {
     if (isAddressInUseError(line)) {
       addressInUse = true;
     }
-    log.warn(`[gog] ${line}`);
+    log.warn(`[gwsc] ${line}`);
   });
 
   child.on("error", (err) => {
-    log.error(`gog process error: ${String(err)}`);
+    log.error(`gwsc process error: ${String(err)}`);
   });
 
   child.on("exit", (code, signal) => {
@@ -101,19 +77,19 @@ function spawnGogServe(cfg: GmailHookRuntimeConfig): ChildProcess {
     }
     if (addressInUse) {
       log.warn(
-        "gog serve failed to bind (address already in use); stopping restarts. " +
+        "gwsc watch failed to bind (address already in use); stopping restarts. " +
           "Another watcher is likely running. Set SIMPLECLAW_SKIP_GMAIL_WATCHER=1 or stop the other process.",
       );
       watcherProcess = null;
       return;
     }
-    log.warn(`gog exited (code=${code}, signal=${signal}); restarting in 5s`);
+    log.warn(`gwsc exited (code=${code}, signal=${signal}); restarting in 5s`);
     watcherProcess = null;
     setTimeout(() => {
       if (shuttingDown || !currentConfig) {
         return;
       }
-      watcherProcess = spawnGogServe(currentConfig);
+      watcherProcess = spawnGwscWatch(currentConfig);
     }, 5000);
   });
 
@@ -139,10 +115,10 @@ export async function startGmailWatcher(cfg: SimpleClawConfig): Promise<GmailWat
     return { started: false, reason: "no gmail account configured" };
   }
 
-  // Check if gog is available
-  const gogAvailable = isGogAvailable();
-  if (!gogAvailable) {
-    return { started: false, reason: "gog binary not found" };
+  // Check if gwsc is available
+  const gwscAvailable = isGwscAvailable();
+  if (!gwscAvailable) {
+    return { started: false, reason: "gwsc not found; run skills/google-workspace/setup.sh" };
   }
 
   // Resolve the full runtime config
@@ -175,23 +151,19 @@ export async function startGmailWatcher(cfg: SimpleClawConfig): Promise<GmailWat
     }
   }
 
-  // Start the Gmail watch (register with Gmail API)
-  const watchStarted = await startGmailWatch(runtimeConfig);
-  if (!watchStarted) {
-    log.warn("gmail watch start failed, but continuing with serve");
-  }
-
-  // Spawn the gog serve process
+  // Spawn the gwsc +watch process (handles registration + listening)
   shuttingDown = false;
-  watcherProcess = spawnGogServe(runtimeConfig);
+  watcherProcess = spawnGwscWatch(runtimeConfig);
 
-  // Set up renewal interval
+  // Set up renewal interval — restart the +watch process to re-register
   const renewMs = runtimeConfig.renewEveryMinutes * 60_000;
   renewInterval = setInterval(() => {
-    if (shuttingDown) {
+    if (shuttingDown || !watcherProcess) {
       return;
     }
-    void startGmailWatch(runtimeConfig);
+    log.info("renewing gmail watch (restarting gwsc)");
+    watcherProcess.kill("SIGTERM");
+    // The 'exit' handler will respawn
   }, renewMs);
 
   log.info(

@@ -32,7 +32,7 @@ Enable it in an agent allowlist:
 
 ## Using `openclaw.invoke` (Lobster → OpenClaw tools)
 
-Some Lobster pipelines may include a `openclaw.invoke` step to call back into OpenClaw tools/plugins (for example: `gog` for Google Workspace, `gh` for GitHub, `message.send`, etc.).
+Some Lobster pipelines may include a `openclaw.invoke` step to call back into OpenClaw tools/plugins (for example: `gwsc` for Google Workspace, `gh` for GitHub, `message.send`, etc.).
 
 For this to work, the OpenClaw Gateway must expose the tool bridge endpoint and the target tool must be allowed by policy:
 
@@ -53,7 +53,7 @@ Example (allow only a small set of tools):
       {
         "id": "main",
         "tools": {
-          "allow": ["lobster", "web_fetch", "web_search", "gog", "gh"],
+          "allow": ["lobster", "web_fetch", "web_search", "gwsc", "gh"],
           "deny": ["gateway"],
         },
       },
