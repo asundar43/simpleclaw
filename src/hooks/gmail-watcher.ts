@@ -118,7 +118,10 @@ export async function startGmailWatcher(cfg: SimpleClawConfig): Promise<GmailWat
   // Check if gwsc is available
   const gwscAvailable = isGwscAvailable();
   if (!gwscAvailable) {
-    return { started: false, reason: "gwsc not found; run skills/google-workspace/setup.sh" };
+    return {
+      started: false,
+      reason: "gwsc not found; run: simpleclaw marketplace install google-workspace",
+    };
   }
 
   // Resolve the full runtime config

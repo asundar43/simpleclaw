@@ -322,12 +322,14 @@ export async function ensureGwscDependency() {
   if (hasBinary("gws")) {
     throw new Error(
       "gws found but gwsc wrapper missing.\n" +
-        "Run the google-workspace skill setup: bash ~/.openclaw/skills/google-workspace/setup.sh",
+        "Install the google-workspace skill: simpleclaw marketplace install google-workspace\n" +
+        "Then run setup: bash ~/.simpleclaw/skills/google-workspace/setup.sh",
     );
   }
   throw new Error(
     "google-workspace CLI not installed.\n" +
-      "Install via skill setup: bash ~/.openclaw/skills/google-workspace/setup.sh\n" +
+      "Install the skill: simpleclaw marketplace install google-workspace\n" +
+      "Then run setup: bash ~/.simpleclaw/skills/google-workspace/setup.sh\n" +
       "Or manually: npm install -g @googleworkspace/cli",
   );
 }

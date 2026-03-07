@@ -13,7 +13,7 @@ Goal: Gmail watch -> Pub/Sub push -> `gwsc gmail +watch` -> OpenClaw webhook.
 ## Prereqs
 
 - `gcloud` installed and logged in ([install guide](https://docs.cloud.google.com/sdk/docs/install-sdk)).
-- `gwsc` (google-workspace CLI) installed and authorized for the Gmail account (set up via the google-workspace skill).
+- `gwsc` (google-workspace CLI) installed and authorized for the Gmail account (install via `simpleclaw marketplace install google-workspace`, then run the skill's `setup.sh`).
 - OpenClaw hooks enabled (see [Webhooks](/automation/webhook)).
 - `tailscale` logged in ([tailscale.com](https://tailscale.com/)). Supported setup uses Tailscale Funnel for the public HTTPS endpoint.
   Other tunnel services can work, but are DIY/unsupported and require manual wiring.
