@@ -54,6 +54,8 @@ function validateSkillName(name: string): void {
 // ── Catalog verification ─────────────────────────────────────
 
 export type CatalogEntry = {
+  /** Slug identifier (preferred). */
+  id?: string;
   name: string;
   archiveUrl: string;
   version: string;
@@ -65,8 +67,9 @@ function verifyCatalogEntry(
   archiveUrl: string,
   catalogEntry: CatalogEntry,
 ): string | null {
-  if (name !== catalogEntry.name) {
-    return `Skill name "${name}" does not match catalog entry "${catalogEntry.name}"`;
+  // Match against id (preferred) or name (backward compat)
+  if (name !== catalogEntry.id && name !== catalogEntry.name) {
+    return `Skill name "${name}" does not match catalog entry "${catalogEntry.id ?? catalogEntry.name}"`;
   }
   if (archiveUrl !== catalogEntry.archiveUrl) {
     return `Archive URL does not match catalog entry for skill "${name}"`;

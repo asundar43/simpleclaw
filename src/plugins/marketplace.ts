@@ -22,6 +22,8 @@ export type MarketplacePluginEntry = {
 };
 
 export type MarketplaceSkillEntry = {
+  /** Unique slug identifier (e.g. "google-workspace"). */
+  id: string;
   name: string;
   description: string;
   /** GCS URL or HTTPS URL to the skill archive (.tar.gz). */
@@ -105,6 +107,7 @@ export function searchCatalog(
 
   const skills = catalog.skills.filter(
     (s) =>
+      s.id.toLowerCase().includes(q) ||
       s.name.toLowerCase().includes(q) ||
       s.description.toLowerCase().includes(q) ||
       s.tags?.some((t) => t.toLowerCase().includes(q)),

@@ -157,7 +157,7 @@ async function handleInstall(req: IncomingMessage, res: ServerResponse): Promise
     return true;
   }
 
-  const skillEntry = catalog.skills.find((s) => s.name === id);
+  const skillEntry = catalog.skills.find((s) => s.id === id || s.name === id);
   const pluginEntry = catalog.plugins.find((p) => p.id === id || p.npmSpec === id);
 
   if (typeHint === "skill" && skillEntry) {
@@ -180,17 +180,17 @@ async function handleInstall(req: IncomingMessage, res: ServerResponse): Promise
 async function doInstallSkill(
   res: ServerResponse,
   cfg: ReturnType<typeof loadConfig>,
-  entry: { name: string; archiveUrl: string; version: string },
+  entry: { id: string; name: string; archiveUrl: string; version: string },
 ): Promise<boolean> {
   if (!entry.archiveUrl) {
-    sendJson(res, 400, { ok: false, error: `Skill "${entry.name}" has no archive URL` });
+    sendJson(res, 400, { ok: false, error: `Skill "${entry.id}" has no archive URL` });
     return true;
   }
 
   const authToken = await resolveMarketplaceAuthToken(cfg);
 
   const result = await installSkillFromArchiveUrl({
-    name: entry.name,
+    name: entry.id,
     archiveUrl: entry.archiveUrl,
     catalogEntry: entry,
     authToken: authToken ?? undefined,
@@ -202,7 +202,7 @@ async function doInstallSkill(
   }
 
   const next = recordSkillInstall(cfg, {
-    skillName: entry.name,
+    skillName: entry.id,
     source: "marketplace",
     version: entry.version,
     archiveUrl: entry.archiveUrl,
@@ -211,7 +211,7 @@ async function doInstallSkill(
 
   sendJson(res, 200, {
     ok: true,
-    id: entry.name,
+    id: entry.id,
     type: "skill",
     version: entry.version,
   });
@@ -400,7 +400,9 @@ async function handleSync(req: IncomingMessage, res: ServerResponse): Promise<bo
         const authToken = await resolveMarketplaceAuthToken(cfg);
 
         for (const [skillName, record] of marketplaceSkills) {
-          const catalogEntry = catalog.skills.find((s) => s.name === skillName);
+          const catalogEntry = catalog.skills.find(
+            (s) => s.id === skillName || s.name === skillName,
+          );
           if (!catalogEntry) {
             results.push({
               id: skillName,

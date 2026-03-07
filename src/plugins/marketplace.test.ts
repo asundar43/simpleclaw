@@ -34,6 +34,7 @@ const MOCK_CATALOG = {
   ],
   skills: [
     {
+      id: "runbook",
       name: "runbook",
       description: "Internal runbook automation",
       archiveUrl: "gs://bucket/runbook.tar.gz",

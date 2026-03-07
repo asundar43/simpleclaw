@@ -33,7 +33,8 @@ vi.mock("../plugins/marketplace.js", () => ({
     ],
     skills: [
       {
-        name: "web-search",
+        id: "web-search",
+        name: "Web Search",
         description: "Web search skill",
         archiveUrl: "gs://simpleclaw-marketplace/skills/web-search-1.0.0.tar.gz",
         version: "1.0.0",

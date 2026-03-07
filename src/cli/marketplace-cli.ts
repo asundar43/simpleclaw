@@ -140,7 +140,7 @@ export function registerMarketplaceCli(program: Command) {
     .option("--pin", "Record install as exact resolved version (plugins only)", false)
     .action(async (id: string, opts: { pin?: boolean }) => {
       const catalog = await loadCatalog();
-      const skillEntry = catalog.skills.find((s) => s.name === id);
+      const skillEntry = catalog.skills.find((s) => s.id === id || s.name === id);
       const pluginEntry = catalog.plugins.find((p) => p.id === id || p.npmSpec === id);
 
       if (!skillEntry && !pluginEntry) {
@@ -264,7 +264,9 @@ export function registerMarketplaceCli(program: Command) {
         const authToken = await resolveMarketplaceAuthToken(cfg);
 
         for (const [skillName, record] of marketplaceSkills) {
-          const catalogEntry = catalog.skills.find((s) => s.name === skillName);
+          const catalogEntry = catalog.skills.find(
+            (s) => s.id === skillName || s.name === skillName,
+          );
           if (!catalogEntry) {
             defaultRuntime.log(theme.warn(`Skill "${skillName}" no longer in catalog. Skipping.`));
             continue;
@@ -409,7 +411,7 @@ async function installSkillFromCatalog(
 ) {
   if (!skillEntry.archiveUrl) {
     defaultRuntime.error(
-      `Skill "${skillEntry.name}" has no archive URL. It may only be available as part of a plugin.`,
+      `Skill "${skillEntry.id}" has no archive URL. It may only be available as part of a plugin.`,
     );
     process.exit(1);
   }
@@ -417,10 +419,10 @@ async function installSkillFromCatalog(
   const cfg = loadConfig();
   const authToken = await resolveMarketplaceAuthToken(cfg);
 
-  defaultRuntime.log(`Installing skill ${theme.command(skillEntry.name)} (${skillEntry.version})…`);
+  defaultRuntime.log(`Installing skill ${theme.command(skillEntry.id)} (${skillEntry.version})…`);
 
   const result = await installSkillFromArchiveUrl({
-    name: skillEntry.name,
+    name: skillEntry.id,
     archiveUrl: skillEntry.archiveUrl,
     catalogEntry: skillEntry,
     authToken: authToken ?? undefined,
@@ -436,14 +438,14 @@ async function installSkillFromCatalog(
   }
 
   const next = recordSkillInstall(cfg, {
-    skillName: skillEntry.name,
+    skillName: skillEntry.id,
     source: "marketplace",
     version: skillEntry.version,
     archiveUrl: skillEntry.archiveUrl,
   });
 
   await writeConfigFile(next);
-  defaultRuntime.log(`Installed skill: ${skillEntry.name} → ${result.targetDir}`);
+  defaultRuntime.log(`Installed skill: ${skillEntry.id} → ${result.targetDir}`);
   defaultRuntime.log("Skill is available immediately (no gateway restart needed).");
 }
 
@@ -478,6 +480,7 @@ function printPluginTable(plugins: MarketplacePluginEntry[]) {
 function printSkillTable(skills: MarketplaceSkillEntry[]) {
   const tableWidth = Math.max(60, (process.stdout.columns ?? 120) - 1);
   const rows = skills.map((s) => ({
+    ID: s.id,
     Name: s.name,
     Version: s.version,
     Description: theme.muted(s.description),
@@ -488,9 +491,10 @@ function printSkillTable(skills: MarketplaceSkillEntry[]) {
     renderTable({
       width: tableWidth,
       columns: [
+        { key: "ID", header: "ID", minWidth: 14, flex: true },
         { key: "Name", header: "Name", minWidth: 14, flex: true },
         { key: "Version", header: "Ver", minWidth: 8 },
-        { key: "Description", header: "Description", minWidth: 30, flex: true },
+        { key: "Description", header: "Description", minWidth: 20, flex: true },
       ],
       rows,
     }).trimEnd(),
