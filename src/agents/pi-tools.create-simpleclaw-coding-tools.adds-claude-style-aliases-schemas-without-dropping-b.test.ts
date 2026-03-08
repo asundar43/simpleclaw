@@ -7,7 +7,7 @@ const defaultTools = createSimpleClawCodingTools({ senderIsOwner: true });
 
 describe("createSimpleClawCodingTools", () => {
   it("preserves action enums in normalized schemas", () => {
-    const toolNames = ["browser", "canvas", "nodes", "cron", "gateway", "message"];
+    const toolNames = ["browser", "nodes", "cron", "gateway", "message"];
 
     const collectActionValues = (schema: unknown, values: Set<string>): void => {
       if (!schema || typeof schema !== "object") {
