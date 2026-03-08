@@ -68,10 +68,25 @@ describe("supermemory config schema", () => {
     expect(config.apiKey).toBe("");
   });
 
+  test("returns defaults for undefined/null config", () => {
+    const fromUndefined = supermemoryConfigSchema.parse(undefined);
+    expect(fromUndefined.apiKey).toBe("");
+    expect(fromUndefined.autoRecall).toBe(true);
+    expect(fromUndefined.autoCapture).toBe(true);
+
+    const fromNull = supermemoryConfigSchema.parse(null);
+    expect(fromNull.apiKey).toBe("");
+    expect(fromNull.autoRecall).toBe(true);
+    expect(fromNull.autoCapture).toBe(true);
+  });
+
   test("rejects non-object config", () => {
-    expect(() => supermemoryConfigSchema.parse(null)).toThrow("supermemory config required");
-    expect(() => supermemoryConfigSchema.parse("string")).toThrow("supermemory config required");
-    expect(() => supermemoryConfigSchema.parse([1, 2])).toThrow("supermemory config required");
+    expect(() => supermemoryConfigSchema.parse("string")).toThrow(
+      "supermemory config must be an object",
+    );
+    expect(() => supermemoryConfigSchema.parse([1, 2])).toThrow(
+      "supermemory config must be an object",
+    );
   });
 
   test("rejects unknown keys", () => {
@@ -278,6 +293,22 @@ describe("supermemory plugin registration", () => {
 
     expect(registeredServices.length).toBe(1);
     expect(registeredServices[0].id).toBe("supermemory");
+  });
+
+  test("registers all components when pluginConfig is undefined (no user config)", async () => {
+    const { default: plugin } = await import("./index.js");
+
+    // Simulate no user config — pluginConfig is undefined
+    const mockApi = createMockApi(undefined as unknown as Record<string, unknown>);
+    plugin.register(mockApi);
+
+    // All 4 tools should still be registered
+    expect(registeredTools.length).toBe(4);
+    // Both hooks registered (autoRecall + autoCapture default to true)
+    expect(registeredHooks["before_prompt_build"]).toBeDefined();
+    expect(registeredHooks["agent_end"]).toBeDefined();
+    // Service registered
+    expect(registeredServices.length).toBe(1);
   });
 
   test("tool factories return null when session key has no container tag", async () => {

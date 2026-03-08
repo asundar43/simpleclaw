@@ -551,3 +551,7 @@ export { loadWebMedia, type WebMediaResult } from "../web/media.js";
 
 // Security utilities
 export { redactSensitiveText } from "../logging/redact.js";
+
+// Agent scope helpers (used by bundled extensions for CLI commands)
+export { resolveDefaultAgentId, resolveAgentWorkspaceDir } from "../agents/agent-scope.js";
+export { resolveSessionTranscriptsDirForAgent } from "../config/sessions/paths.js";

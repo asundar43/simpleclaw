@@ -1,6 +1,6 @@
 {
   "name": "simpleclaw",
-  "version": "2026.3.8-3",
+  "version": "2026.3.8-5",
   "description": "Multi-channel AI gateway with extensible messaging integrations",
   "keywords": [],
   "homepage": "https://github.com/simpleclaw/simpleclaw#readme",
@@ -192,6 +192,7 @@
     "qrcode-terminal": "^0.12.0",
     "sharp": "^0.34.5",
     "sqlite-vec": "0.1.7-alpha.2",
+    "supermemory": "^4.15.0",
     "tar": "7.5.9",
     "tslog": "^4.10.2",
     "undici": "^7.22.0",

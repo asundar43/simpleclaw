@@ -12,6 +12,7 @@ import { Type } from "@sinclair/typebox";
 import type { SimpleClawPluginApi } from "simpleclaw/plugin-sdk";
 import { jsonResult, readNumberParam, readStringParam } from "simpleclaw/plugin-sdk";
 import Supermemory from "supermemory";
+import type { SupermemoryConfig } from "./config.js";
 import { supermemoryConfigSchema } from "./config.js";
 
 const SUPERMEMORY_API_BASE = "https://api.supermemory.ai";
@@ -195,6 +196,34 @@ async function forgetMemory(apiKey: string, memoryId: string): Promise<void> {
   }
 }
 
+/**
+ * Lazy API key + client resolver. Resolves once on first use, caches the result.
+ * Returns null if API key cannot be resolved (instead of throwing).
+ */
+function createLazyClient(cfg: SupermemoryConfig, logger: { warn: (msg: string) => void }) {
+  let cached: { apiKey: string; client: Supermemory } | null = null;
+  let failed = false;
+
+  return async (): Promise<{ apiKey: string; client: Supermemory } | null> => {
+    if (cached) {
+      return cached;
+    }
+    if (failed) {
+      return null;
+    }
+    try {
+      const apiKey = await resolveApiKey(cfg.apiKey, cfg.gcpProject, cfg.gcpSecretName);
+      const client = new Supermemory({ apiKey });
+      cached = { apiKey, client };
+      return cached;
+    } catch (err) {
+      failed = true;
+      logger.warn(`supermemory: ${err instanceof Error ? err.message : String(err)}`);
+      return null;
+    }
+  };
+}
+
 const supermemoryPlugin = {
   id: "supermemory",
   name: "Supermemory",
@@ -202,10 +231,10 @@ const supermemoryPlugin = {
   kind: "memory" as const,
   configSchema: supermemoryConfigSchema,
 
-  async register(api: SimpleClawPluginApi) {
+  // IMPORTANT: register() must be synchronous — the plugin loader does NOT await async register().
+  register(api: SimpleClawPluginApi) {
     const cfg = supermemoryConfigSchema.parse(api.pluginConfig);
-    const apiKey = await resolveApiKey(cfg.apiKey, cfg.gcpProject, cfg.gcpSecretName);
-    const client = new Supermemory({ apiKey });
+    const getClient = createLazyClient(cfg, api.logger);
 
     // ========================================================================
     // Tool: supermemory_remember
@@ -235,6 +264,10 @@ const supermemoryPlugin = {
             ),
           }),
           async execute(_toolCallId, params) {
+            const resolved = await getClient();
+            if (!resolved) {
+              return jsonResult({ status: "error", error: "supermemory API key not configured" });
+            }
             const content = readStringParam(params as Record<string, unknown>, "content", {
               required: true,
             });
@@ -242,7 +275,7 @@ const supermemoryPlugin = {
             const isStatic = isStaticRaw === "true";
 
             try {
-              const result = await createDirectMemory(apiKey, {
+              const result = await createDirectMemory(resolved.apiKey, {
                 content,
                 containerTag,
                 isStatic,
@@ -286,13 +319,17 @@ const supermemoryPlugin = {
             limit: Type.Optional(Type.Number({ description: "Max search results (default: 10)" })),
           }),
           async execute(_toolCallId, params) {
+            const resolved = await getClient();
+            if (!resolved) {
+              return jsonResult({ status: "error", error: "supermemory API key not configured" });
+            }
             const query = readStringParam(params as Record<string, unknown>, "query", {
               required: true,
             });
             const limit = readNumberParam(params as Record<string, unknown>, "limit") ?? 10;
 
             try {
-              const profile = await client.profile({
+              const profile = await resolved.client.profile({
                 containerTag,
                 q: query,
               });
@@ -345,13 +382,17 @@ const supermemoryPlugin = {
             limit: Type.Optional(Type.Number({ description: "Max results (default: 10)" })),
           }),
           async execute(_toolCallId, params) {
+            const resolved = await getClient();
+            if (!resolved) {
+              return jsonResult({ status: "error", error: "supermemory API key not configured" });
+            }
             const query = readStringParam(params as Record<string, unknown>, "query", {
               required: true,
             });
             const limit = readNumberParam(params as Record<string, unknown>, "limit") ?? 10;
 
             try {
-              const results = await client.search.memories({
+              const results = await resolved.client.search.memories({
                 q: query,
                 containerTag,
                 searchMode: "hybrid",
@@ -402,12 +443,16 @@ const supermemoryPlugin = {
             memoryId: Type.String({ description: "The memory ID to forget" }),
           }),
           async execute(_toolCallId, params) {
+            const resolved = await getClient();
+            if (!resolved) {
+              return jsonResult({ status: "error", error: "supermemory API key not configured" });
+            }
             const memoryId = readStringParam(params as Record<string, unknown>, "memoryId", {
               required: true,
             });
 
             try {
-              await forgetMemory(apiKey, memoryId);
+              await forgetMemory(resolved.apiKey, memoryId);
               return jsonResult({
                 status: "forgotten",
                 memoryId,
@@ -438,8 +483,13 @@ const supermemoryPlugin = {
           return;
         }
 
+        const resolved = await getClient();
+        if (!resolved) {
+          return;
+        }
+
         try {
-          const profilePromise = client.profile({
+          const profilePromise = resolved.client.profile({
             containerTag,
             q: event.prompt,
           });
@@ -518,13 +568,18 @@ const supermemoryPlugin = {
           return;
         }
 
+        const resolved = await getClient();
+        if (!resolved) {
+          return;
+        }
+
         try {
           const conversationText = extractConversationText(event.messages);
           if (!conversationText || conversationText.length < 20) {
             return;
           }
 
-          await client.add({
+          await resolved.client.add({
             content: conversationText,
             containerTag,
             // Use sessionId as customId for deduplication across updates
@@ -574,9 +629,8 @@ const supermemoryPlugin = {
           .action(async (opts: Record<string, unknown>) => {
             const { migrateAgent } = await import("./migrate.js");
             const { resolveDefaultAgentId, resolveAgentWorkspaceDir } =
-              await import("../../src/agents/agent-scope.js");
-            const { resolveSessionTranscriptsDirForAgent } =
-              await import("../../src/config/sessions/paths.js");
+              await import("simpleclaw/plugin-sdk");
+            const { resolveSessionTranscriptsDirForAgent } = await import("simpleclaw/plugin-sdk");
 
             const migrateApiKey = await resolveApiKey(
               cfg.apiKey,
@@ -654,10 +708,16 @@ const supermemoryPlugin = {
     api.registerService({
       id: "supermemory",
       async start() {
+        const resolved = await getClient();
+        if (!resolved) {
+          api.logger.warn("supermemory: no API key — tools and hooks will return errors");
+          return;
+        }
+
         // Configure filter prompt on service start if provided
         if (cfg.filterPrompt) {
           try {
-            await client.settings.update({
+            await resolved.client.settings.update({
               shouldLLMFilter: true,
               filterPrompt: cfg.filterPrompt,
             });

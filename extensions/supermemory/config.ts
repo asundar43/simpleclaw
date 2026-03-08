@@ -40,8 +40,16 @@ function resolveEnvVars(value: string): string {
 
 export const supermemoryConfigSchema = {
   parse(value: unknown): SupermemoryConfig {
-    if (!value || typeof value !== "object" || Array.isArray(value)) {
-      throw new Error("supermemory config required");
+    if (value === undefined || value === null) {
+      // No config provided — return defaults (apiKey resolved later from env/GCloud)
+      return {
+        apiKey: "",
+        autoRecall: true,
+        autoCapture: true,
+      };
+    }
+    if (typeof value !== "object" || Array.isArray(value)) {
+      throw new Error("supermemory config must be an object");
     }
     const cfg = value as Record<string, unknown>;
     assertAllowedKeys(cfg, ALLOWED_KEYS, "supermemory config");
