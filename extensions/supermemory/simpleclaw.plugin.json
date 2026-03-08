@@ -1,0 +1,44 @@
+{
+  "id": "supermemory",
+  "kind": "memory",
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "apiKey": {
+        "type": "string",
+        "description": "Supermemory API key. Optional — auto-resolves from SUPERMEMORY_API_KEY env var or GCloud Secret Manager."
+      },
+      "autoRecall": {
+        "type": "boolean",
+        "description": "Automatically inject user profile and relevant memories into agent context before each run.",
+        "default": true
+      },
+      "autoCapture": {
+        "type": "boolean",
+        "description": "Automatically store conversation transcripts after each agent run for memory extraction.",
+        "default": true
+      },
+      "filterPrompt": {
+        "type": "string",
+        "description": "Custom prompt to guide what gets extracted from conversations."
+      },
+      "containerTagPrefix": {
+        "type": "string",
+        "description": "Optional prefix prepended to container tags for namespace isolation."
+      },
+      "entityContext": {
+        "type": "string",
+        "description": "Per-user context string to guide memory extraction quality (max 1500 chars)."
+      },
+      "gcpProject": {
+        "type": "string",
+        "description": "GCP project for Secret Manager API key resolution."
+      },
+      "gcpSecretName": {
+        "type": "string",
+        "description": "GCP secret name for API key resolution."
+      }
+    }
+  }
+}
