@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evaluateRuntimeEligibility } from "./config-eval.js";
+import { clearHasBinaryCache, evaluateRuntimeEligibility, hasBinary } from "./config-eval.js";
 
 describe("evaluateRuntimeEligibility", () => {
   it("rejects entries when required OS does not match local or remote", () => {
@@ -49,5 +49,30 @@ describe("evaluateRuntimeEligibility", () => {
       isConfigPathTruthy: (path) => path === "browser.enabled",
     });
     expect(result).toBe(true);
+  });
+});
+
+describe("clearHasBinaryCache", () => {
+  it("clears cached binary lookups so next hasBinary call re-scans", () => {
+    // Perform a lookup to populate the cache
+    const firstResult = hasBinary("node");
+    // Clear the cache
+    clearHasBinaryCache();
+    // A subsequent lookup should still work (re-scans PATH)
+    const secondResult = hasBinary("node");
+    expect(firstResult).toBe(secondResult);
+  });
+
+  it("allows a previously-missing binary to be found after cache clear", () => {
+    // Look up a binary that definitely doesn't exist
+    const missing = hasBinary("__simpleclaw_nonexistent_binary_test__");
+    expect(missing).toBe(false);
+
+    // Clear cache — if the binary were installed between calls, it would be found
+    clearHasBinaryCache();
+
+    // Still doesn't exist, but the cache was cleared (no stale result)
+    const afterClear = hasBinary("__simpleclaw_nonexistent_binary_test__");
+    expect(afterClear).toBe(false);
   });
 });

@@ -1,16 +1,19 @@
+import fs from "node:fs";
 import {
   listAgentIds,
   resolveAgentWorkspaceDir,
   resolveDefaultAgentId,
 } from "../../agents/agent-scope.js";
-import { installSkill } from "../../agents/skills-install.js";
+import { installSkill, extractPostInstallInstructions } from "../../agents/skills-install.js";
 import { buildWorkspaceSkillStatus } from "../../agents/skills-status.js";
 import { loadWorkspaceSkillEntries, type SkillEntry } from "../../agents/skills.js";
+import { bumpSkillsSnapshotVersion } from "../../agents/skills/refresh.js";
 import { listAgentWorkspaceDirs } from "../../agents/workspace-dirs.js";
 import type { SimpleClawConfig } from "../../config/config.js";
 import { loadConfig, writeConfigFile } from "../../config/config.js";
 import { getSkillEligibilityContext } from "../../infra/skills-remote.js";
 import { normalizeAgentId } from "../../routing/session-key.js";
+import { clearHasBinaryCache } from "../../shared/config-eval.js";
 import { normalizeSecretInput } from "../../utils/normalize-secret-input.js";
 import {
   ErrorCodes,
@@ -137,6 +140,25 @@ export const skillsHandlers: GatewayRequestHandlers = {
       timeoutMs: p.timeoutMs,
       config: cfg,
     });
+    if (result.ok) {
+      clearHasBinaryCache();
+      bumpSkillsSnapshotVersion({ workspaceDir: workspaceDirRaw, reason: "manual" });
+
+      // Extract post-install instructions from the skill's SKILL.md
+      const entries = loadWorkspaceSkillEntries(workspaceDirRaw, { config: cfg });
+      const entry = entries.find((e) => e.skill.name === p.name);
+      if (entry) {
+        try {
+          const content = fs.readFileSync(entry.skill.filePath, "utf-8");
+          const instructions = extractPostInstallInstructions(content);
+          if (instructions) {
+            result.postInstallInstructions = instructions;
+          }
+        } catch {
+          // Skill file unreadable; skip post-install instructions.
+        }
+      }
+    }
     respond(
       result.ok,
       result,

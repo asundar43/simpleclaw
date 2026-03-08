@@ -31,6 +31,7 @@ export type SkillInstallResult = {
   stderr: string;
   code: number | null;
   warnings?: string[];
+  postInstallInstructions?: string;
 };
 
 function withWarnings(result: SkillInstallResult, warnings: string[]): SkillInstallResult {
@@ -473,4 +474,55 @@ export async function installSkill(params: SkillInstallRequest): Promise<SkillIn
   }
 
   return withWarnings(await executeInstallCommand({ argv, timeoutMs, env }), warnings);
+}
+
+const POST_INSTALL_HEADING_RE =
+  /^(#{2,3})\s+(?:after\s+connect(?:ing)?|after\s+setup|after\s+install(?:ation)?|post[- ]install(?:ation)?|getting\s+started)\s*$/i;
+
+/**
+ * Extract the post-install instructions section from a SKILL.md body.
+ * Looks for headings like "## After connecting", "### After setup", etc.
+ * Returns the section content (without the heading itself), or undefined.
+ */
+export function extractPostInstallInstructions(content: string): string | undefined {
+  const normalized = content.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+
+  // Skip frontmatter if present
+  let body = normalized;
+  if (normalized.startsWith("---")) {
+    const endIndex = normalized.indexOf("\n---", 3);
+    if (endIndex !== -1) {
+      body = normalized.slice(endIndex + 4);
+    }
+  }
+
+  const lines = body.split("\n");
+  let startIdx = -1;
+  let headingLevel = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const match = lines[i].match(POST_INSTALL_HEADING_RE);
+    if (match) {
+      startIdx = i + 1;
+      headingLevel = match[1].length;
+      break;
+    }
+  }
+
+  if (startIdx < 0) {
+    return undefined;
+  }
+
+  // Find where the section ends: next heading of same or higher level
+  const endPattern = new RegExp(`^#{1,${headingLevel}}\\s`);
+  let endIdx = lines.length;
+  for (let i = startIdx; i < lines.length; i++) {
+    if (endPattern.test(lines[i])) {
+      endIdx = i;
+      break;
+    }
+  }
+
+  const section = lines.slice(startIdx, endIdx).join("\n").trim();
+  return section || undefined;
 }

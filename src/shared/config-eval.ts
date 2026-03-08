@@ -190,3 +190,9 @@ export function hasBinary(bin: string): boolean {
   hasBinaryCache.set(bin, false);
   return false;
 }
+
+export function clearHasBinaryCache(): void {
+  hasBinaryCache.clear();
+  cachedHasBinaryPath = undefined;
+  cachedHasBinaryPathExt = undefined;
+}

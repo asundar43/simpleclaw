@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { withTempWorkspace } from "./skills-install.download-test-utils.js";
-import { installSkill } from "./skills-install.js";
+import { extractPostInstallInstructions, installSkill } from "./skills-install.js";
 import {
   runCommandWithTimeoutMock,
   scanDirectoryWithSummaryMock,
@@ -102,5 +102,164 @@ describe("installSkill code safety scanning", () => {
         true,
       );
     });
+  });
+});
+
+describe("extractPostInstallInstructions", () => {
+  it("extracts '## After connecting' section", () => {
+    const content = `---
+name: notion
+description: Notion skill
+---
+
+# Notion
+
+## Setup
+
+Run setup.sh.
+
+## After connecting
+
+1. Search for pages
+2. Fetch integration info
+
+## Troubleshooting
+
+Fix things here.
+`;
+    const result = extractPostInstallInstructions(content);
+    expect(result).toBe("1. Search for pages\n2. Fetch integration info");
+  });
+
+  it("extracts '### After setup' section", () => {
+    const content = `---
+name: test
+---
+
+# Test
+
+### After setup
+
+Do these things after setup.
+
+### Commands
+
+Other content.
+`;
+    const result = extractPostInstallInstructions(content);
+    expect(result).toBe("Do these things after setup.");
+  });
+
+  it("extracts 'After install' section", () => {
+    const content = `# Skill
+
+## After install
+
+Run the following commands.
+
+## Usage
+`;
+    const result = extractPostInstallInstructions(content);
+    expect(result).toBe("Run the following commands.");
+  });
+
+  it("extracts 'Post-install' section", () => {
+    const content = `# Skill
+
+## Post-install
+
+Check that everything works.
+
+## Reference
+`;
+    const result = extractPostInstallInstructions(content);
+    expect(result).toBe("Check that everything works.");
+  });
+
+  it("extracts 'Getting started' section", () => {
+    const content = `# Skill
+
+## Getting started
+
+Welcome! Here's what to do.
+
+## API Reference
+`;
+    const result = extractPostInstallInstructions(content);
+    expect(result).toBe("Welcome! Here's what to do.");
+  });
+
+  it("returns undefined when no matching section exists", () => {
+    const content = `---
+name: test
+---
+
+# Test
+
+## Setup
+
+Run setup.
+
+## Commands
+
+Do stuff.
+`;
+    const result = extractPostInstallInstructions(content);
+    expect(result).toBeUndefined();
+  });
+
+  it("extracts section that extends to end of file", () => {
+    const content = `# Skill
+
+## After connecting
+
+Do these things.
+They are important.
+`;
+    const result = extractPostInstallInstructions(content);
+    expect(result).toBe("Do these things.\nThey are important.");
+  });
+
+  it("handles content without frontmatter", () => {
+    const content = `# Skill
+
+## After connecting
+
+Instructions here.
+
+## Other
+`;
+    const result = extractPostInstallInstructions(content);
+    expect(result).toBe("Instructions here.");
+  });
+
+  it("returns undefined for empty section", () => {
+    const content = `# Skill
+
+## After connecting
+
+## Next section
+`;
+    const result = extractPostInstallInstructions(content);
+    expect(result).toBeUndefined();
+  });
+
+  it("stops at same-level heading", () => {
+    const content = `# Skill
+
+## After connecting
+
+Step 1.
+
+### Sub-heading
+
+Details under sub-heading.
+
+## Next section
+
+Other content.
+`;
+    const result = extractPostInstallInstructions(content);
+    expect(result).toBe("Step 1.\n\n### Sub-heading\n\nDetails under sub-heading.");
   });
 });
