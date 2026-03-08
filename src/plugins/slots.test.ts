@@ -72,7 +72,7 @@ describe("applyExclusiveSlotSelection", () => {
 
     expect(result.changed).toBe(true);
     expect(result.warnings).toContain(
-      'Exclusive slot "memory" switched from "memory-core" to "memory".',
+      'Exclusive slot "memory" switched from "supermemory" to "memory".',
     );
   });
 
@@ -87,7 +87,7 @@ describe("applyExclusiveSlotSelection", () => {
     expect(result.changed).toBe(true);
     expect(result.config.plugins?.entries?.["memory-core"]?.enabled).toBe(false);
     expect(result.warnings).toContain(
-      'Exclusive slot "memory" switched from "memory-core" to "memory".',
+      'Exclusive slot "memory" switched from "supermemory" to "memory".',
     );
     expect(result.warnings).not.toContain('Disabled other "memory" slot plugins: memory-core.');
   });

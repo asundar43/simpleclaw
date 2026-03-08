@@ -118,9 +118,10 @@ export function removePluginFromConfig(
   // Reset memory slot if this plugin was selected
   let slots = pluginsConfig.slots;
   if (slots?.memory === pluginId) {
+    const fallback = defaultSlotIdForKey("memory");
     slots = {
       ...slots,
-      memory: defaultSlotIdForKey("memory"),
+      memory: fallback === pluginId ? "memory-core" : fallback,
     };
     actions.memorySlot = true;
   }

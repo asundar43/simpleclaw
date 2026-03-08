@@ -4,7 +4,7 @@ import { normalizePluginsConfig, resolveEffectiveEnableState } from "./config-st
 describe("normalizePluginsConfig", () => {
   it("uses default memory slot when not specified", () => {
     const result = normalizePluginsConfig({});
-    expect(result.slots.memory).toBe("memory-core");
+    expect(result.slots.memory).toBe("supermemory");
   });
 
   it("respects explicit memory slot value", () => {
@@ -38,14 +38,14 @@ describe("normalizePluginsConfig", () => {
     const result = normalizePluginsConfig({
       slots: { memory: "" },
     });
-    expect(result.slots.memory).toBe("memory-core");
+    expect(result.slots.memory).toBe("supermemory");
   });
 
   it("uses default when memory slot is whitespace only", () => {
     const result = normalizePluginsConfig({
       slots: { memory: "   " },
     });
-    expect(result.slots.memory).toBe("memory-core");
+    expect(result.slots.memory).toBe("supermemory");
   });
 });
 

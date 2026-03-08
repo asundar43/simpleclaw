@@ -12,7 +12,7 @@ import { recordPluginInstall } from "../plugins/installs.js";
 import { clearPluginManifestRegistryCache } from "../plugins/manifest-registry.js";
 import { resolveRegistryAuth } from "../plugins/registry-auth.js";
 import type { PluginRecord } from "../plugins/registry.js";
-import { applyExclusiveSlotSelection } from "../plugins/slots.js";
+import { applyExclusiveSlotSelection, defaultSlotIdForKey } from "../plugins/slots.js";
 import { resolvePluginSourceRoots, formatPluginSourceForTable } from "../plugins/source-display.js";
 import { buildPluginStatusReport } from "../plugins/status.js";
 import { resolveUninstallDirectoryTarget, uninstallPlugin } from "../plugins/uninstall.js";
@@ -427,7 +427,7 @@ export function registerPluginsCli(program: Command) {
         preview.push("load path");
       }
       if (cfg.plugins?.slots?.memory === pluginId) {
-        preview.push(`memory slot (will reset to "memory-core")`);
+        preview.push(`memory slot (will reset to "${defaultSlotIdForKey("memory")}")`);
       }
       const deleteTarget = !keepFiles
         ? resolveUninstallDirectoryTarget({

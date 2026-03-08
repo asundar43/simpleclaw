@@ -207,7 +207,7 @@ describe("removePluginFromConfig", () => {
 
     const { config: result, actions } = removePluginFromConfig(config, "memory-plugin");
 
-    expect(result.plugins?.slots?.memory).toBe("memory-core");
+    expect(result.plugins?.slots?.memory).toBe("supermemory");
     expect(actions.memorySlot).toBe(true);
   });
 

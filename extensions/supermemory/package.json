@@ -1,0 +1,19 @@
+{
+  "name": "@simpleclaw/supermemory",
+  "version": "2026.3.8",
+  "private": true,
+  "description": "SimpleClaw supermemory integration — cloud user profiling and long-term memory",
+  "type": "module",
+  "dependencies": {
+    "@sinclair/typebox": "0.34.48",
+    "supermemory": "latest"
+  },
+  "peerDependencies": {
+    "simpleclaw": "workspace:*"
+  },
+  "simpleclaw": {
+    "extensions": [
+      "./index.ts"
+    ]
+  }
+}

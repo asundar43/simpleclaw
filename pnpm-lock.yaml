@@ -392,6 +392,18 @@ importers:
 
   extensions/slack: {}
 
+  extensions/supermemory:
+    dependencies:
+      '@sinclair/typebox':
+        specifier: 0.34.48
+        version: 0.34.48
+      simpleclaw:
+        specifier: workspace:*
+        version: link:../..
+      supermemory:
+        specifier: latest
+        version: 4.15.0
+
   extensions/synology-chat:
     dependencies:
       zod:
@@ -5331,6 +5343,9 @@ packages:
   strtok3@10.3.4:
     resolution: {integrity: sha512-KIy5nylvC5le1OdaaoCJ07L+8iQzJHGH6pWDuzS+d07Cu7n1MZ2x26P8ZKIWfbK02+XIL8Mp4RkWeqdUCrDMfg==}
     engines: {node: '>=18'}
+
+  supermemory@4.15.0:
+    resolution: {integrity: sha512-FNBBOEi1HMvbBecXC6gn84nGy7ZEdFW5kLv7VlWirHDPEM08omBBBHQ7H2cwBIGWUenBMDaao3kPKe9W6Ki+UQ==}
 
   supports-color@7.2.0:
     resolution: {integrity: sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw==}
@@ -11216,6 +11231,8 @@ snapshots:
   strtok3@10.3.4:
     dependencies:
       '@tokenizer/token': 0.3.0
+
+  supermemory@4.15.0: {}
 
   supports-color@7.2.0:
     dependencies:

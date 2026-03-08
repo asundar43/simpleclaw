@@ -18,6 +18,7 @@ export const BUNDLED_ENABLED_BY_DEFAULT = new Set<string>([
   "device-pair",
   "phone-control",
   "talk-voice",
+  "supermemory",
 ]);
 
 const normalizeList = (value: unknown): string[] => {
@@ -83,7 +84,11 @@ const hasExplicitMemorySlot = (plugins?: SimpleClawConfig["plugins"]) =>
   Boolean(plugins?.slots && Object.prototype.hasOwnProperty.call(plugins.slots, "memory"));
 
 const hasExplicitMemoryEntry = (plugins?: SimpleClawConfig["plugins"]) =>
-  Boolean(plugins?.entries && Object.prototype.hasOwnProperty.call(plugins.entries, "memory-core"));
+  Boolean(
+    plugins?.entries &&
+    (Object.prototype.hasOwnProperty.call(plugins.entries, "memory-core") ||
+      Object.prototype.hasOwnProperty.call(plugins.entries, "supermemory")),
+  );
 
 const hasExplicitPluginConfig = (plugins?: SimpleClawConfig["plugins"]) => {
   if (!plugins) {
