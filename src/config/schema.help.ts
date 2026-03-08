@@ -1148,6 +1148,12 @@ export const FIELD_HELP: Record<string, string> = {
     "Optional model override for Gmail-triggered runs when mailbox automations should use dedicated model behavior. Keep unset to inherit agent defaults unless mailbox tasks need specialization.",
   "hooks.gmail.thinking":
     'Thinking effort override for Gmail-driven agent runs: "off", "minimal", "low", "medium", or "high". Keep modest defaults for routine inbox automations to control cost and latency.',
+  "hooks.gmail.channel":
+    "Messaging channel to deliver Gmail notifications to (e.g. telegram, whatsapp). Defaults to the last used channel from the main session.",
+  "hooks.gmail.to":
+    "Delivery target for Gmail notifications (e.g. Telegram chat ID, phone number). Required when the main session has no prior channel history.",
+  "hooks.gmail.deliver":
+    "Whether to deliver Gmail hook output to a messaging channel. Default: true.",
   "hooks.internal":
     "Internal hook runtime settings for bundled/custom event handlers loaded from module paths. Use this for trusted in-process automations and keep handler loading tightly scoped.",
   "hooks.internal.enabled":

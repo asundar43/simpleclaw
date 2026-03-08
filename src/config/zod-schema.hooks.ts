@@ -156,6 +156,9 @@ export const HooksGmailSchema = z
         z.literal("high"),
       ])
       .optional(),
+    channel: z.string().optional(),
+    to: z.string().optional(),
+    deliver: z.boolean().optional(),
   })
   .strict()
   .optional();

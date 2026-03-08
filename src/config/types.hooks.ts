@@ -70,6 +70,12 @@ export type HooksGmailConfig = {
   model?: string;
   /** Optional thinking level override for Gmail hook processing. */
   thinking?: "off" | "minimal" | "low" | "medium" | "high";
+  /** Delivery channel for Gmail notifications. Default: "last" (most recent chat channel). */
+  channel?: HookMappingConfig["channel"];
+  /** Delivery target (e.g. Telegram chat ID, phone number). */
+  to?: string;
+  /** Whether to deliver Gmail hook output to a messaging channel. Default: true. */
+  deliver?: boolean;
 };
 
 export type InternalHookHandlerConfig = {

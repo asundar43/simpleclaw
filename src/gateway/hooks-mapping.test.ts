@@ -114,6 +114,27 @@ describe("hooks mapping", () => {
     const mappings = resolveHookMappings({ presets: ["gmail"] });
     expect(mappings.length).toBeGreaterThan(0);
     expect(mappings[0]?.matchPath).toBe("gmail");
+    expect(mappings[0]?.deliver).toBe(true);
+  });
+
+  it("merges gmail config channel and to into preset", () => {
+    const mappings = resolveHookMappings({
+      presets: ["gmail"],
+      gmail: { channel: "telegram", to: "123456" },
+    });
+    expect(mappings.length).toBeGreaterThan(0);
+    expect(mappings[0]?.channel).toBe("telegram");
+    expect(mappings[0]?.to).toBe("123456");
+    expect(mappings[0]?.deliver).toBe(true);
+  });
+
+  it("respects gmail config deliver false", () => {
+    const mappings = resolveHookMappings({
+      presets: ["gmail"],
+      gmail: { deliver: false },
+    });
+    expect(mappings.length).toBeGreaterThan(0);
+    expect(mappings[0]?.deliver).toBe(false);
   });
 
   it("renders template from payload", async () => {

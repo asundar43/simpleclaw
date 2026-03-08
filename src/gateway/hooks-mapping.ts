@@ -72,6 +72,7 @@ const hookPresetMappings: Record<string, HookMappingConfig[]> = {
       action: "agent",
       wakeMode: "now",
       name: "Gmail",
+      deliver: true,
       sessionKey: "hook:gmail:{{messages[0].id}}",
       messageTemplate:
         "New email from {{messages[0].from}}\nSubject: {{messages[0].subject}}\n{{messages[0].snippet}}\n{{messages[0].body}}",
@@ -118,11 +119,16 @@ export function resolveHookMappings(
     if (!presetMappings) {
       continue;
     }
-    if (preset === "gmail" && typeof gmailAllowUnsafe === "boolean") {
+    if (preset === "gmail") {
       mappings.push(
         ...presetMappings.map((mapping) => ({
           ...mapping,
-          allowUnsafeExternalContent: gmailAllowUnsafe,
+          ...(typeof gmailAllowUnsafe === "boolean"
+            ? { allowUnsafeExternalContent: gmailAllowUnsafe }
+            : {}),
+          ...(hooks?.gmail?.channel ? { channel: hooks.gmail.channel } : {}),
+          ...(hooks?.gmail?.to ? { to: hooks.gmail.to } : {}),
+          ...(typeof hooks?.gmail?.deliver === "boolean" ? { deliver: hooks.gmail.deliver } : {}),
         })),
       );
       continue;
