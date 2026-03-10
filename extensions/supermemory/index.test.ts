@@ -127,22 +127,22 @@ describe("supermemory config schema", () => {
 describe("resolveContainerTag", () => {
   test("resolves standard session key", () => {
     const tag = resolveContainerTag("agent:main:telegram:direct:12345");
-    expect(tag).toBe("main:telegram:direct:12345");
+    expect(tag).toBe("main_telegram_direct_12345");
   });
 
   test("resolves session key with prefix", () => {
     const tag = resolveContainerTag("agent:main:telegram:direct:12345", "myapp");
-    expect(tag).toBe("myapp:main:telegram:direct:12345");
+    expect(tag).toBe("myapp_main_telegram_direct_12345");
   });
 
   test("resolves group session key", () => {
     const tag = resolveContainerTag("agent:main:discord:group:98765");
-    expect(tag).toBe("main:discord:group:98765");
+    expect(tag).toBe("main_discord_group_98765");
   });
 
   test("resolves simple session key", () => {
     const tag = resolveContainerTag("agent:main:direct");
-    expect(tag).toBe("main:direct");
+    expect(tag).toBe("main_direct");
   });
 
   test("returns null for undefined session key", () => {
@@ -168,7 +168,7 @@ describe("resolveContainerTag", () => {
       peerChannel: "telegram",
       agentId: "main",
     });
-    expect(tag).toBe("main:telegram:direct:+15551234567");
+    expect(tag).toBe("main_telegram_direct_15551234567");
   });
 
   test("uses peerId with prefix", () => {
@@ -177,7 +177,7 @@ describe("resolveContainerTag", () => {
       peerChannel: "discord",
       agentId: "main",
     });
-    expect(tag).toBe("myapp:main:discord:direct:user123");
+    expect(tag).toBe("myapp_main_discord_direct_user123");
   });
 
   test("lowercases peerId in per-user tag", () => {
@@ -185,14 +185,14 @@ describe("resolveContainerTag", () => {
       peerId: "USER123",
       peerChannel: "telegram",
     });
-    expect(tag).toBe("main:telegram:direct:user123");
+    expect(tag).toBe("main_telegram_direct_user123");
   });
 
   test("falls back to session key when peerId is missing", () => {
     const tag = resolveContainerTag("agent:main:telegram:direct:12345", undefined, {
       peerChannel: "telegram",
     });
-    expect(tag).toBe("main:telegram:direct:12345");
+    expect(tag).toBe("main_telegram_direct_12345");
   });
 
   test("derives agentId from session key when not in peerInfo", () => {
@@ -200,14 +200,14 @@ describe("resolveContainerTag", () => {
       peerId: "user456",
       peerChannel: "slack",
     });
-    expect(tag).toBe("support:slack:direct:user456");
+    expect(tag).toBe("support_slack_direct_user456");
   });
 
   test("defaults peerChannel to unknown when missing", () => {
     const tag = resolveContainerTag("agent:main:main", undefined, {
       peerId: "user789",
     });
-    expect(tag).toBe("main:unknown:direct:user789");
+    expect(tag).toBe("main_unknown_direct_user789");
   });
 
   test("different peers get different container tags even with same session key", () => {
@@ -221,8 +221,8 @@ describe("resolveContainerTag", () => {
       peerChannel: "telegram",
     });
     expect(tagA).not.toBe(tagB);
-    expect(tagA).toBe("main:telegram:direct:alice");
-    expect(tagB).toBe("main:telegram:direct:bob");
+    expect(tagA).toBe("main_telegram_direct_alice");
+    expect(tagB).toBe("main_telegram_direct_bob");
   });
 });
 

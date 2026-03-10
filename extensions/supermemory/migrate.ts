@@ -308,7 +308,7 @@ export async function migrateAgent(params: MigrateAgentParams): Promise<MigrateP
     log(`Found ${memoryFiles.length} memory files to migrate`);
   }
 
-  const globalTag = `${agentId}:global`;
+  const globalTag = `${agentId}_global`;
 
   await processBatches(memoryFiles, batchSize, delayMs, async (filePath) => {
     const content = await fs.readFile(filePath, "utf-8");

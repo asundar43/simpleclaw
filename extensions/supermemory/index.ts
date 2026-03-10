@@ -95,8 +95,9 @@ export function resolveContainerTag(
   if (peerInfo?.peerId) {
     const agentId = peerInfo.agentId ?? resolveAgentIdFromSessionKey(sessionKey);
     const channel = peerInfo.peerChannel ?? "unknown";
-    const tag = `${agentId}:${channel}:direct:${peerInfo.peerId.toLowerCase()}`;
-    return prefix ? `${prefix}:${tag}` : tag;
+    const raw = `${agentId}_${channel}_direct_${peerInfo.peerId.toLowerCase()}`;
+    const tag = prefix ? `${prefix}_${raw}` : raw;
+    return sanitizeContainerTag(tag);
   }
 
   // Fallback: derive from session key
@@ -107,12 +108,18 @@ export function resolveContainerTag(
   if (parts.length < 3 || parts[0] !== "agent") {
     return null;
   }
-  // e.g. "main:telegram:direct:12345"
-  const tag = parts.slice(1).join(":");
-  if (!tag) {
+  // e.g. "main_telegram_direct_12345"
+  const raw = parts.slice(1).join("_");
+  if (!raw) {
     return null;
   }
-  return prefix ? `${prefix}:${tag}` : tag;
+  const tag = prefix ? `${prefix}_${raw}` : raw;
+  return sanitizeContainerTag(tag);
+}
+
+/** Strip characters the supermemory API rejects (colons fail despite docs). */
+function sanitizeContainerTag(tag: string): string {
+  return tag.replace(/[^a-z0-9_.\-]/gi, "_").replace(/_{2,}/g, "_");
 }
 
 /** Extract agent ID from a session key like `agent:main:...` */

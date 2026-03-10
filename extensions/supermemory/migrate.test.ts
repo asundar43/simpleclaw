@@ -170,7 +170,7 @@ describe("migrateAgent", () => {
     expect(result.apiCalls).toBe(1);
     expect(addMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        containerTag: "main:telegram:direct:12345",
+        containerTag: "main_telegram_direct_12345",
         customId: "migrate:session:sess-001",
         metadata: expect.objectContaining({ source: "migration" }),
       }),
@@ -239,7 +239,7 @@ describe("migrateAgent", () => {
     expect(result.memoryFilesTotal).toBe(1);
     expect(addMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        containerTag: "main:global",
+        containerTag: "main_global",
         customId: "migrate:memory:main:MEMORY.md",
         metadata: expect.objectContaining({ source: "migration", file: "MEMORY.md" }),
       }),
@@ -261,7 +261,7 @@ describe("migrateAgent", () => {
     expect(result.memoryFilesProcessed).toBe(1);
     expect(addMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        containerTag: "main:global",
+        containerTag: "main_global",
         customId: "migrate:memory:main:notes.md",
       }),
     );
@@ -352,7 +352,7 @@ describe("migrateAgent", () => {
     expect(result.sessionsProcessed).toBe(1);
     expect(addMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        containerTag: "main:discord:direct:abc",
+        containerTag: "main_discord_direct_abc",
       }),
     );
   });
@@ -373,7 +373,7 @@ describe("migrateAgent", () => {
     expect(result.sessionsProcessed).toBe(1);
     expect(addMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        containerTag: "myapp:main:telegram:direct:12345",
+        containerTag: "myapp_main_telegram_direct_12345",
       }),
     );
   });
