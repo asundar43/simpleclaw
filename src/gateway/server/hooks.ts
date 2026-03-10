@@ -76,6 +76,7 @@ export function createGatewayHooksRequestHandler(params: {
         if (!result.delivered) {
           enqueueSystemEvent(`${prefix}: ${summary}`.trim(), {
             sessionKey: mainSessionKey,
+            contextKey: `cron:hook:${jobId}`,
           });
           if (value.wakeMode === "now") {
             requestHeartbeatNow({ reason: `hook:${jobId}` });
@@ -85,6 +86,7 @@ export function createGatewayHooksRequestHandler(params: {
         logHooks.warn(`hook agent failed: ${String(err)}`);
         enqueueSystemEvent(`Hook ${value.name} (error): ${String(err)}`, {
           sessionKey: mainSessionKey,
+          contextKey: `cron:hook:${jobId}`,
         });
         if (value.wakeMode === "now") {
           requestHeartbeatNow({ reason: `hook:${jobId}:error` });

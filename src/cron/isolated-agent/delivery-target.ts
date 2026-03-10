@@ -14,6 +14,7 @@ import {
 import { readChannelAllowFromStoreSync } from "../../pairing/pairing-store.js";
 import { buildChannelAccountBindings } from "../../routing/bindings.js";
 import { normalizeAgentId } from "../../routing/session-key.js";
+import { isInternalMessageChannel } from "../../utils/message-channel.js";
 import { resolveWhatsAppAccount } from "../../web/accounts.js";
 import { normalizeWhatsAppTarget } from "../../whatsapp/normalize.js";
 
@@ -171,6 +172,20 @@ export async function resolveDeliveryTarget(
         toCandidate = allowFromOverride[0];
       }
     }
+  }
+
+  // Internal channels (webchat) route through the announce flow which
+  // triggers an agent turn via callGateway. The response broadcasts to
+  // connected WebSocket clients without outbound target validation.
+  if (isInternalMessageChannel(channel)) {
+    return {
+      ok: true,
+      channel,
+      to: toCandidate,
+      accountId,
+      threadId,
+      mode,
+    };
   }
 
   const docked = resolveOutboundTarget({
