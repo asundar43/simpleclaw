@@ -1054,6 +1054,8 @@ export async function runEmbeddedAttempt(
           sessionId: params.sessionId,
           workspaceDir: params.workspaceDir,
           messageProvider: params.messageProvider ?? undefined,
+          peerId: params.senderId ?? undefined,
+          peerChannel: params.messageProvider ?? undefined,
         };
         const hookResult = await resolvePromptBuildHookResult({
           prompt: params.prompt,
@@ -1309,6 +1311,8 @@ export async function runEmbeddedAttempt(
                 sessionId: params.sessionId,
                 workspaceDir: params.workspaceDir,
                 messageProvider: params.messageProvider ?? undefined,
+                peerId: params.senderId ?? undefined,
+                peerChannel: params.messageProvider ?? undefined,
               },
             )
             .catch((err) => {

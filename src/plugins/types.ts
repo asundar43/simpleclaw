@@ -64,6 +64,10 @@ export type SimpleClawPluginToolContext = {
   messageChannel?: string;
   agentAccountId?: string;
   sandboxed?: boolean;
+  /** Peer (sender) identifier for per-user isolation (e.g. supermemory container tags). */
+  peerId?: string;
+  /** Channel provider for per-user isolation (e.g. "telegram", "discord"). */
+  peerChannel?: string;
 };
 
 export type SimpleClawPluginToolFactory = (
@@ -331,6 +335,10 @@ export type PluginHookAgentContext = {
   sessionId?: string;
   workspaceDir?: string;
   messageProvider?: string;
+  /** Peer (sender) identifier for per-user isolation (e.g. supermemory container tags). */
+  peerId?: string;
+  /** Channel provider for per-user isolation (e.g. "telegram", "discord"). */
+  peerChannel?: string;
 };
 
 // before_model_resolve hook

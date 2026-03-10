@@ -482,6 +482,8 @@ export function createSimpleClawCodingTools(options?: {
       requesterAgentIdOverride: agentId,
       requesterSenderId: options?.senderId,
       senderIsOwner: options?.senderIsOwner,
+      peerId: options?.senderId ?? undefined,
+      peerChannel: options?.messageProvider ?? undefined,
     }),
   ];
   // Security: treat unknown/undefined as unauthorized (opt-in, not opt-out)

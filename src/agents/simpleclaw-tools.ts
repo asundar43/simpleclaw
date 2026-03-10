@@ -70,6 +70,10 @@ export function createSimpleClawTools(options?: {
   requesterSenderId?: string | null;
   /** Whether the requesting sender is an owner. */
   senderIsOwner?: boolean;
+  /** Peer (sender) identifier for per-user plugin isolation. */
+  peerId?: string;
+  /** Channel provider for per-user plugin isolation. */
+  peerChannel?: string;
 }): AnyAgentTool[] {
   const workspaceDir = resolveWorkspaceRoot(options?.workspaceDir);
   const imageTool = options?.agentDir?.trim()
@@ -189,6 +193,8 @@ export function createSimpleClawTools(options?: {
       messageChannel: options?.agentChannel,
       agentAccountId: options?.agentAccountId,
       sandboxed: options?.sandboxed,
+      peerId: options?.peerId,
+      peerChannel: options?.peerChannel,
     },
     existingToolNames: new Set(tools.map((tool) => tool.name)),
     toolAllowlist: options?.pluginToolAllowlist,

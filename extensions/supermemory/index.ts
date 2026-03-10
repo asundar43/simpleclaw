@@ -77,14 +77,29 @@ function fetchGcloudSecret(project: string, secretName: string): Promise<string 
 }
 
 /**
- * Derive a container tag from the session key.
- * Session keys look like `agent:main:telegram:direct:12345`.
- * We use everything after `agent:` as the container tag for per-agent+channel+user isolation.
+ * Derive a container tag for per-user memory isolation.
+ *
+ * When `peerId` and `peerChannel` are provided, builds a per-user tag directly
+ * (e.g. `main:telegram:direct:12345`) regardless of the session dmScope setting.
+ * This ensures memories are never shared across users even when dmScope="main"
+ * collapses all DMs to a single session key.
+ *
+ * Falls back to session-key-based derivation when peer info is unavailable.
  */
 export function resolveContainerTag(
   sessionKey: string | undefined,
   prefix?: string,
+  peerInfo?: { peerId?: string; peerChannel?: string; agentId?: string },
 ): string | null {
+  // When peer info is available, build a per-user tag directly
+  if (peerInfo?.peerId) {
+    const agentId = peerInfo.agentId ?? resolveAgentIdFromSessionKey(sessionKey);
+    const channel = peerInfo.peerChannel ?? "unknown";
+    const tag = `${agentId}:${channel}:direct:${peerInfo.peerId.toLowerCase()}`;
+    return prefix ? `${prefix}:${tag}` : tag;
+  }
+
+  // Fallback: derive from session key
   if (!sessionKey) {
     return null;
   }
@@ -98,6 +113,16 @@ export function resolveContainerTag(
     return null;
   }
   return prefix ? `${prefix}:${tag}` : tag;
+}
+
+/** Extract agent ID from a session key like `agent:main:...` */
+function resolveAgentIdFromSessionKey(sessionKey: string | undefined): string {
+  if (!sessionKey) return "main";
+  const parts = sessionKey.split(":");
+  if (parts.length >= 2 && parts[0] === "agent") {
+    return parts[1] || "main";
+  }
+  return "main";
 }
 
 /**
@@ -242,7 +267,11 @@ const supermemoryPlugin = {
 
     api.registerTool(
       (ctx) => {
-        const containerTag = resolveContainerTag(ctx.sessionKey, cfg.containerTagPrefix);
+        const containerTag = resolveContainerTag(ctx.sessionKey, cfg.containerTagPrefix, {
+          peerId: ctx.peerId,
+          peerChannel: ctx.peerChannel,
+          agentId: ctx.agentId,
+        });
         if (!containerTag) {
           return null;
         }
@@ -303,7 +332,11 @@ const supermemoryPlugin = {
 
     api.registerTool(
       (ctx) => {
-        const containerTag = resolveContainerTag(ctx.sessionKey, cfg.containerTagPrefix);
+        const containerTag = resolveContainerTag(ctx.sessionKey, cfg.containerTagPrefix, {
+          peerId: ctx.peerId,
+          peerChannel: ctx.peerChannel,
+          agentId: ctx.agentId,
+        });
         if (!containerTag) {
           return null;
         }
@@ -366,7 +399,11 @@ const supermemoryPlugin = {
 
     api.registerTool(
       (ctx) => {
-        const containerTag = resolveContainerTag(ctx.sessionKey, cfg.containerTagPrefix);
+        const containerTag = resolveContainerTag(ctx.sessionKey, cfg.containerTagPrefix, {
+          peerId: ctx.peerId,
+          peerChannel: ctx.peerChannel,
+          agentId: ctx.agentId,
+        });
         if (!containerTag) {
           return null;
         }
@@ -429,7 +466,11 @@ const supermemoryPlugin = {
 
     api.registerTool(
       (ctx) => {
-        const containerTag = resolveContainerTag(ctx.sessionKey, cfg.containerTagPrefix);
+        const containerTag = resolveContainerTag(ctx.sessionKey, cfg.containerTagPrefix, {
+          peerId: ctx.peerId,
+          peerChannel: ctx.peerChannel,
+          agentId: ctx.agentId,
+        });
         if (!containerTag) {
           return null;
         }
@@ -478,7 +519,11 @@ const supermemoryPlugin = {
         if (!event.prompt || event.prompt.length < 5) {
           return;
         }
-        const containerTag = resolveContainerTag(ctx.sessionKey, cfg.containerTagPrefix);
+        const containerTag = resolveContainerTag(ctx.sessionKey, cfg.containerTagPrefix, {
+          peerId: ctx.peerId,
+          peerChannel: ctx.peerChannel,
+          agentId: ctx.agentId,
+        });
         if (!containerTag) {
           return;
         }
@@ -563,7 +608,11 @@ const supermemoryPlugin = {
         if (!event.success || !event.messages || event.messages.length === 0) {
           return;
         }
-        const containerTag = resolveContainerTag(ctx.sessionKey, cfg.containerTagPrefix);
+        const containerTag = resolveContainerTag(ctx.sessionKey, cfg.containerTagPrefix, {
+          peerId: ctx.peerId,
+          peerChannel: ctx.peerChannel,
+          agentId: ctx.agentId,
+        });
         if (!containerTag) {
           return;
         }
