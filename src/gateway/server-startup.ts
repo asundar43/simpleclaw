@@ -1,5 +1,6 @@
 import { resolveAgentSessionDirs } from "../agents/session-dirs.js";
 import { cleanStaleLockFiles } from "../agents/session-write-lock.js";
+import { shouldIncludeSkill } from "../agents/skills/config.js";
 import { loadWorkspaceSkillEntries } from "../agents/skills/workspace.js";
 import type { CliDeps } from "../cli/deps.js";
 import type { loadConfig } from "../config/config.js";
@@ -11,6 +12,7 @@ import {
 } from "../hooks/internal-hooks.js";
 import { loadInternalHooks } from "../hooks/loader.js";
 import { isTruthyEnvValue } from "../infra/env.js";
+import { getSkillEligibilityContext } from "../infra/skills-remote.js";
 import type { loadSimpleClawPlugins } from "../plugins/loader.js";
 import { type PluginServicesHandle, startPluginServices } from "../plugins/services.js";
 import type { HookMappingResolved } from "./hooks-mapping.js";
@@ -135,7 +137,20 @@ export async function startGatewaySidecars(params: {
       const skillEntries = loadWorkspaceSkillEntries(params.defaultWorkspaceDir, {
         config: params.cfg,
       });
-      const allWatchEntries = skillEntries.flatMap((entry) => entry.metadata?.watch ?? []);
+      const eligibility = getSkillEligibilityContext();
+      const eligibleEntries = skillEntries.filter((entry) => {
+        if (!entry.metadata?.watch?.length) {
+          return false;
+        }
+        const eligible = shouldIncludeSkill({ entry, config: params.cfg, eligibility });
+        if (!eligible) {
+          params.log.warn(
+            `skipping watchers for skill "${entry.skill.name}": requirements not met (check connections/config)`,
+          );
+        }
+        return eligible;
+      });
+      const allWatchEntries = eligibleEntries.flatMap((entry) => entry.metadata?.watch ?? []);
       if (allWatchEntries.length > 0) {
         skillWatchMappings = buildSkillWatchMappings(allWatchEntries);
         for (const watchEntry of allWatchEntries) {

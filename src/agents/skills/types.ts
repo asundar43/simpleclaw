@@ -46,6 +46,7 @@ export type SimpleClawSkillMetadata = {
     anyBins?: string[];
     env?: string[];
     config?: string[];
+    connections?: string[];
   };
   install?: SkillInstallSpec[];
   /** Long-running watch commands that stream NDJSON events for proactive notifications. */

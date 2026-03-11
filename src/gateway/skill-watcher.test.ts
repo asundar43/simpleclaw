@@ -27,9 +27,13 @@ vi.mock("node:child_process", () => ({
   spawn: vi.fn(() => mockChild),
 }));
 
+// Capture readline "line" handlers so tests can simulate NDJSON output.
+const readlineHandlers: Record<string, (line: string) => void> = {};
 vi.mock("node:readline", () => ({
   createInterface: vi.fn(() => ({
-    on: vi.fn(),
+    on: vi.fn((event: string, cb: (line: string) => void) => {
+      readlineHandlers[event] = cb;
+    }),
     close: vi.fn(),
   })),
 }));
@@ -137,5 +141,87 @@ describe("stopAllSkillWatchers", () => {
 
     await stopAllSkillWatchers();
     expect(getRunningSkillWatcherIds()).toHaveLength(0);
+  });
+});
+
+describe("restart backoff", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function captureExitHandler(): (code: number, signal: null) => void {
+    let exitHandler: ((code: number, signal: null) => void) | undefined;
+    mockChild.on.mockImplementation((event: string, cb: (...args: unknown[]) => void) => {
+      if (event === "exit") {
+        exitHandler = cb as (code: number, signal: null) => void;
+      }
+      return mockChild;
+    });
+    return (...args) => exitHandler!(...args);
+  }
+
+  it("uses exponential backoff on repeated failures", () => {
+    const triggerExit = captureExitHandler();
+    startSkillWatcher({ ...baseEntry, id: "backoff-test" }, hookConfig);
+    expect(spawnMock).toHaveBeenCalledTimes(1);
+
+    // First failure: 5s delay
+    triggerExit(1, null);
+    expect(spawnMock).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(5_000);
+    expect(spawnMock).toHaveBeenCalledTimes(2);
+
+    // Second failure: 10s delay
+    triggerExit(1, null);
+    vi.advanceTimersByTime(5_000);
+    expect(spawnMock).toHaveBeenCalledTimes(2); // not yet
+    vi.advanceTimersByTime(5_000);
+    expect(spawnMock).toHaveBeenCalledTimes(3);
+
+    // Third failure: 20s delay
+    triggerExit(1, null);
+    vi.advanceTimersByTime(19_999);
+    expect(spawnMock).toHaveBeenCalledTimes(3);
+    vi.advanceTimersByTime(1);
+    expect(spawnMock).toHaveBeenCalledTimes(4);
+  });
+
+  it("stops retrying after MAX_CONSECUTIVE_FAILURES", () => {
+    const triggerExit = captureExitHandler();
+    startSkillWatcher({ ...baseEntry, id: "max-retry-test" }, hookConfig);
+
+    // Trigger 10 consecutive failures
+    for (let i = 0; i < 10; i++) {
+      triggerExit(1, null);
+      vi.advanceTimersByTime(5 * 60 * 1_000); // advance past max delay
+    }
+
+    // Watcher should be removed from tracking
+    expect(isSkillWatcherRunning("max-retry-test")).toBe(false);
+    expect(getRunningSkillWatcherIds()).not.toContain("max-retry-test");
+  });
+
+  it("resets failure count on successful NDJSON output", () => {
+    const triggerExit = captureExitHandler();
+    startSkillWatcher({ ...baseEntry, id: "reset-test" }, hookConfig);
+
+    // Fail a few times to build up consecutiveFailures
+    triggerExit(1, null);
+    vi.advanceTimersByTime(5_000); // 5s
+    triggerExit(1, null);
+    vi.advanceTimersByTime(10_000); // 10s
+
+    // Emit a valid NDJSON line to reset failures
+    readlineHandlers.line(JSON.stringify({ event: "test" }));
+
+    // Next failure should use the base delay (5s) again, not 20s
+    triggerExit(1, null);
+    expect(spawnMock).toHaveBeenCalledTimes(3); // initial + 2 restarts (no new spawn yet)
+    vi.advanceTimersByTime(5_000);
+    expect(spawnMock).toHaveBeenCalledTimes(4); // restarted at base delay (backoff was reset)
   });
 });

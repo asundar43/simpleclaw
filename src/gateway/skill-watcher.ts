@@ -13,7 +13,9 @@ import { createSubsystemLogger } from "../logging/subsystem.js";
 
 const log = createSubsystemLogger("skill-watcher");
 
-const RESTART_DELAY_MS = 5_000;
+const RESTART_DELAY_BASE_MS = 5_000;
+const RESTART_DELAY_MAX_MS = 5 * 60 * 1_000; // 5 minutes
+const MAX_CONSECUTIVE_FAILURES = 10;
 
 export type SkillWatcherHookConfig = {
   port: number;
@@ -28,6 +30,7 @@ type WatcherState = {
   process: ChildProcess | null;
   shuttingDown: boolean;
   restartTimer: ReturnType<typeof setTimeout> | null;
+  consecutiveFailures: number;
 };
 
 const watchers = new Map<string, WatcherState>();
@@ -67,6 +70,9 @@ function spawnWatchProcess(state: WatcherState): ChildProcess {
       return;
     }
 
+    // Valid NDJSON output means the watcher is healthy — reset backoff.
+    state.consecutiveFailures = 0;
+
     // Fire-and-forget POST to the local hook endpoint
     void postToHook(url, hookConfig.token, payload as Record<string, unknown>, entry.id);
   });
@@ -86,17 +92,33 @@ function spawnWatchProcess(state: WatcherState): ChildProcess {
     if (state.shuttingDown) {
       return;
     }
-    log.warn(
-      `[${entry.id}] exited (code=${code}, signal=${signal}); restarting in ${RESTART_DELAY_MS}ms`,
-    );
     state.process = null;
+    state.consecutiveFailures++;
+
+    if (state.consecutiveFailures >= MAX_CONSECUTIVE_FAILURES) {
+      log.error(
+        `[${entry.id}] exited (code=${code}, signal=${signal}); giving up after ${state.consecutiveFailures} consecutive failures. ` +
+          `Check that the skill's required connections are configured.`,
+      );
+      watchers.delete(entry.id);
+      return;
+    }
+
+    const delayMs = Math.min(
+      RESTART_DELAY_BASE_MS * 2 ** (state.consecutiveFailures - 1),
+      RESTART_DELAY_MAX_MS,
+    );
+    log.warn(
+      `[${entry.id}] exited (code=${code}, signal=${signal}); restarting in ${delayMs}ms ` +
+        `(attempt ${state.consecutiveFailures}/${MAX_CONSECUTIVE_FAILURES})`,
+    );
     state.restartTimer = setTimeout(() => {
       state.restartTimer = null;
       if (state.shuttingDown) {
         return;
       }
       state.process = spawnWatchProcess(state);
-    }, RESTART_DELAY_MS);
+    }, delayMs);
   });
 
   return child;
@@ -145,6 +167,7 @@ export function startSkillWatcher(
     process: null,
     shuttingDown: false,
     restartTimer: null,
+    consecutiveFailures: 0,
   };
 
   state.process = spawnWatchProcess(state);
