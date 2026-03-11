@@ -171,7 +171,7 @@ describe("migrateAgent", () => {
     expect(addMock).toHaveBeenCalledWith(
       expect.objectContaining({
         containerTag: "main_telegram_direct_12345",
-        customId: "migrate:session:sess-001",
+        customId: "migrate_session_sess-001",
         metadata: expect.objectContaining({ source: "migration" }),
       }),
     );
@@ -240,7 +240,7 @@ describe("migrateAgent", () => {
     expect(addMock).toHaveBeenCalledWith(
       expect.objectContaining({
         containerTag: "main_global",
-        customId: "migrate:memory:main:MEMORY.md",
+        customId: "migrate_memory_main_MEMORY.md",
         metadata: expect.objectContaining({ source: "migration", file: "MEMORY.md" }),
       }),
     );
@@ -262,7 +262,7 @@ describe("migrateAgent", () => {
     expect(addMock).toHaveBeenCalledWith(
       expect.objectContaining({
         containerTag: "main_global",
-        customId: "migrate:memory:main:notes.md",
+        customId: "migrate_memory_main_notes.md",
       }),
     );
   });
@@ -331,8 +331,8 @@ describe("migrateAgent", () => {
 
     // Both calls should use the same customId for dedup
     const calls = addMock.mock.calls as Array<Array<Record<string, unknown>>>;
-    expect(calls[0][0].customId).toBe("migrate:session:sess-dedup");
-    expect(calls[1][0].customId).toBe("migrate:session:sess-dedup");
+    expect(calls[0][0].customId).toBe("migrate_session_sess-dedup");
+    expect(calls[1][0].customId).toBe("migrate_session_sess-dedup");
   });
 
   test("uses sessionFile field when available", async () => {

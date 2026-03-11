@@ -276,7 +276,7 @@ export async function migrateAgent(params: MigrateAgentParams): Promise<MigrateP
       await client.add({
         content: conversationText,
         containerTag: job.containerTag,
-        customId: `migrate:session:${job.entry.sessionId}`,
+        customId: `migrate_session_${job.entry.sessionId}`,
         ...(params.entityContext ? { entityContext: params.entityContext } : {}),
         metadata: {
           source: "migration",
@@ -332,7 +332,7 @@ export async function migrateAgent(params: MigrateAgentParams): Promise<MigrateP
       await client.add({
         content,
         containerTag: globalTag,
-        customId: `migrate:memory:${agentId}:${filename}`,
+        customId: `migrate_memory_${agentId}_${filename}`,
         ...(params.entityContext ? { entityContext: params.entityContext } : {}),
         metadata: {
           source: "migration",

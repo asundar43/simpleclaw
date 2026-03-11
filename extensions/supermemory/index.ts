@@ -639,7 +639,7 @@ const supermemoryPlugin = {
             content: conversationText,
             containerTag,
             // Use sessionId as customId for deduplication across updates
-            ...(ctx.sessionId ? { customId: `session:${ctx.sessionId}` } : {}),
+            ...(ctx.sessionId ? { customId: `session_${ctx.sessionId}` } : {}),
             ...(cfg.entityContext ? { entityContext: cfg.entityContext } : {}),
             metadata: {
               source: "auto_capture",
